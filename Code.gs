@@ -40,8 +40,8 @@
  * Mulai kolom C ke kanan = 1 kolom per kegiatan:
  *   - baris HEADER_ROW_NAMA (2)    -> nama kegiatan
  *   - baris HEADER_ROW_TANGGAL (3) -> tanggal kegiatan
- *   - baris FIRST_DATA_ROW (4) dst -> status kehadiran per anggota: "H" / "A" / "I" / kosong
- *     (H = Hadir, A = Alpa, I = Izin)
+ *   - baris FIRST_DATA_ROW (4) dst -> status kehadiran per anggota: "H" / "A" / "I" / "B" / kosong
+ *     (H = Hadir, A = Alpa, I = Izin, B = Bukan Peserta kegiatan ini)
  */
 
 const SPREADSHEET_ID = ''; // isi kalau standalone, kosongkan kalau bound ke spreadsheet
@@ -52,7 +52,7 @@ const HEADER_ROW_TANGGAL = 3;
 const FIRST_DATA_ROW = 4;
 const FIRST_ACTIVITY_COL = 3; // kolom C
 
-const STATUS_VALID = ['H', 'A', 'I', ''];
+const STATUS_VALID = ['H', 'A', 'I', 'B', ''];
 
 function getSS_() {
   return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
@@ -208,18 +208,21 @@ function buildDashboardData_(sheet) {
     div.anggota.forEach(a => {
       const rowIdx = a.row - 1;
       const kehadiran = {};
-      let h = 0, al = 0, i = 0;
+      let h = 0, al = 0, i = 0, b = 0;
       kegiatanList.forEach(k => {
         const status = String(values[rowIdx][k.col - 1] || '').trim().toUpperCase();
         kehadiran[k.col] = status;
         if (status === 'H') h++;
         else if (status === 'A') al++;
         else if (status === 'I') i++;
+        else if (status === 'B') b++;
       });
+      // "B" (Bukan Peserta) sengaja TIDAK dihitung di total_tertandai/persen_hadir —
+      // anggota itu memang bukan bagian dari kegiatan tsb, jadi tidak adil dinilai dari situ.
       const totalTertandai = h + al + i;
       a.kehadiran = kehadiran;
       a.stats = {
-        H: h, A: al, I: i,
+        H: h, A: al, I: i, B: b,
         total_kegiatan: kegiatanList.length,
         total_tertandai: totalTertandai,
         persen_hadir: totalTertandai > 0 ? Math.round((h / totalTertandai) * 1000) / 10 : null
@@ -392,7 +395,7 @@ function updateKehadiran_(sheet, body) {
     return jsonOut_({ ok: false, error: 'Posisi sel tidak valid' });
   }
   if (STATUS_VALID.indexOf(status) === -1) {
-    return jsonOut_({ ok: false, error: 'Status harus H, A, I, atau kosong' });
+    return jsonOut_({ ok: false, error: 'Status harus H, A, I, B, atau kosong' });
   }
 
   sheet.getRange(row, col).setValue(status);
