@@ -116,6 +116,7 @@
   .cell-status.h{ background:rgba(62,217,168,.16); color:var(--teal); border-color:rgba(62,217,168,.4); }
   .cell-status.a{ background:rgba(226,96,79,.16); color:var(--rust); border-color:rgba(226,96,79,.4); }
   .cell-status.i{ background:rgba(242,180,65,.16); color:var(--amber); border-color:rgba(242,180,65,.4); }
+  .cell-status.b{ background:rgba(124,147,172,.16); color:var(--grey); border-color:rgba(124,147,172,.4); }
   .cell-status.empty{ color:var(--text-lo); }
 
   /* ---- popup pilih status ---- */
@@ -130,6 +131,7 @@
   .status-popup button.h{ color:var(--teal); }
   .status-popup button.a{ color:var(--rust); }
   .status-popup button.i{ color:var(--amber); }
+  .status-popup button.b{ color:var(--grey); }
   .status-popup button.clear{ color:var(--text-lo); font-size:16px; }
 
   /* ---- ANGGOTA TAB ---- */
@@ -292,10 +294,11 @@
   </div>
 
   <div class="status-popup" id="statusPopup" style="display:none;">
-    <button class="h" data-status="H">H</button>
-    <button class="a" data-status="A">A</button>
-    <button class="i" data-status="I">I</button>
-    <button class="clear" data-status="">–</button>
+    <button class="h" data-status="H" title="Hadir">H</button>
+    <button class="a" data-status="A" title="Alpa">A</button>
+    <button class="i" data-status="I" title="Izin">I</button>
+    <button class="b" data-status="B" title="Bukan peserta kegiatan ini">B</button>
+    <button class="clear" data-status="" title="Kosongkan">–</button>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -453,7 +456,7 @@
         <span class="rank-name">${a.nama}</span>
         <span class="rank-bar-wrap"><span class="rank-bar" style="width:${a.stats.persen_hadir}%"></span></span>
         <span class="rank-pct">${a.stats.persen_hadir}%</span>
-        <span class="rank-detail">${a.stats.H}H · ${a.stats.A}A · ${a.stats.I}I</span>
+        <span class="rank-detail">${a.stats.H}H · ${a.stats.A}A · ${a.stats.I}I${a.stats.B ? ' · ' + a.stats.B + 'B' : ''}</span>
       `;
       wrap.appendChild(row);
     });
@@ -526,7 +529,7 @@
     const rect = el.getBoundingClientRect();
     popup.style.display = 'flex';
     popup.style.top = (rect.bottom + 6) + 'px';
-    popup.style.left = Math.min(rect.left, window.innerWidth - 160) + 'px';
+    popup.style.left = Math.min(rect.left, window.innerWidth - 210) + 'px';
   }
 
   document.addEventListener('click', (e)=>{
