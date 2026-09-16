@@ -22,12 +22,14 @@
 
   /* ---- LOGIN ---- */
   #loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #roleScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
   .login-box{
     background:var(--navy-panel); border:1px solid var(--line); border-radius:14px;
     padding:32px 28px; width:100%; max-width:340px; text-align:center;
   }
   .login-box p.kicker{ color:var(--gold); font-size:12.5px; letter-spacing:.05em; margin:0 0 6px; }
   .login-box h2{ font-size:22px; margin-bottom:18px; }
+  .login-box p.sub{ color:var(--text-lo); font-size:12.5px; }
   .login-box input{
     width:100%; background:var(--navy-deep); border:1px solid var(--line); border-radius:8px;
     padding:11px 12px; color:var(--text-hi); font-size:14.5px; margin-bottom:12px; font-family:'Inter',sans-serif;
@@ -93,7 +95,26 @@
   .rank-pct{ font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; width:52px; text-align:right; flex:0 0 auto; }
   .rank-detail{ color:var(--text-lo); font-size:11.5px; flex:0 0 auto; white-space:nowrap; }
 
-  /* ---- MATRIX TAB ---- */
+  /* ---- MEMBER: ringkasan & analisa lain ---- */
+  .stat-cards{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .stat-card{
+    background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
+    padding:14px 10px; text-align:center;
+  }
+  .stat-card .num{ font-family:'Oswald',sans-serif; font-weight:700; font-size:22px; color:var(--gold); }
+  .stat-card .lbl{ color:var(--text-lo); font-size:11px; margin-top:3px; }
+  @media (max-width:420px){ .stat-cards{ grid-template-columns:1fr 1fr; } }
+
+  .bar-row{
+    background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
+    padding:11px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
+  }
+  .bar-row .bar-name{ font-weight:600; flex:1 1 40%; min-width:0; }
+  .bar-row .bar-name .bar-sub{ display:block; color:var(--text-lo); font-weight:400; font-size:11px; margin-top:2px; }
+  .bar-row .bar-wrap{ flex:1 1 100px; min-width:60px; height:7px; background:var(--navy-deep); border-radius:99px; overflow:hidden; border:1px solid var(--line); }
+  .bar-row .bar-fill{ height:100%; background:var(--teal); border-radius:99px; }
+  .bar-row .bar-pct{ font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; width:46px; text-align:right; flex:0 0 auto; }
+  .bar-row .bar-pct.na{ color:var(--text-lo); font-family:'Inter',sans-serif; font-weight:400; font-size:11px; }
   .matrix-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
   table.matrix{ border-collapse:collapse; font-size:12.5px; white-space:nowrap; }
   table.matrix th, table.matrix td{ padding:8px 10px; border-bottom:1px solid var(--line); text-align:center; }
@@ -176,18 +197,61 @@
 </head>
 <body>
 
-  <!-- ============== LOGIN ============== -->
-  <div id="loginScreen">
+  <!-- ============== PILIH PERAN ============== -->
+  <div id="roleScreen">
     <div class="login-box">
       <p class="kicker">KSPM ESTOC UNSRAT</p>
       <h2>Dashboard Keaktifan</h2>
-      <input type="password" id="passwordInput" placeholder="Password admin">
-      <button id="loginBtn">Masuk</button>
-      <div class="login-err" id="loginErr"></div>
+      <p class="sub" style="margin-bottom:16px;">Masuk sebagai:</p>
+      <button id="goAdminBtn">Admin</button>
+      <button id="goMemberBtn" style="margin-top:10px; background:transparent; border:1px solid var(--line); color:var(--text-hi);">Anggota</button>
     </div>
   </div>
 
-  <!-- ============== APP ============== -->
+  <!-- ============== LOGIN ADMIN ============== -->
+  <div id="loginScreen" style="display:none;">
+    <div class="login-box">
+      <p class="kicker">KSPM ESTOC UNSRAT</p>
+      <h2>Login Admin</h2>
+      <input type="password" id="passwordInput" placeholder="Password admin">
+      <button id="loginBtn">Masuk</button>
+      <div class="login-err" id="loginErr"></div>
+      <button id="backToRoleFromLogin" class="btn-ghost" style="margin-top:14px; width:100%;">← Kembali</button>
+    </div>
+  </div>
+
+  <!-- ============== MEMBER (read-only) ============== -->
+  <div id="memberScreen" style="display:none; max-width:680px; margin:0 auto; padding:20px 16px 60px;">
+    <div class="topbar">
+      <div>
+        <p class="kicker">KSPM ESTOC UNSRAT</p>
+        <h1>Ikhtisar Keaktifan Anggota</h1>
+      </div>
+      <button class="logout" id="backFromMember">Kembali</button>
+    </div>
+    <div class="periode-bar">
+      <label>Periode</label>
+      <select id="memberPeriodeSelect"></select>
+    </div>
+    <div class="toolbar"><span class="info" id="memberInfo"></span></div>
+
+    <div id="memberEmptyMsg"></div>
+
+    <div id="memberContent" style="display:none;">
+      <div class="stat-cards" id="memberStatCards"></div>
+
+      <div class="div-title" style="margin-top:22px;">Keaktifan per Divisi</div>
+      <div id="memberDivisiList"></div>
+
+      <div class="div-title">Ranking Anggota</div>
+      <div id="memberRankingList"></div>
+
+      <div class="div-title">Tren per Kegiatan</div>
+      <div id="memberKegiatanTrend"></div>
+    </div>
+  </div>
+
+  <!-- ============== APP (ADMIN) ============== -->
   <div id="app">
     <div class="topbar">
       <div>
@@ -204,15 +268,27 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="ranking">Ranking</button>
+      <button class="tab-btn active" data-tab="ikhtisar">Ikhtisar</button>
       <button class="tab-btn" data-tab="rekap">Rekap Kehadiran</button>
       <button class="tab-btn" data-tab="anggota">Anggota</button>
     </div>
 
-    <!-- TAB: RANKING -->
-    <div class="panel active" id="panel-ranking">
-      <div class="toolbar"><span class="info" id="rankingInfo"></span></div>
-      <div id="rankingList"></div>
+    <!-- TAB: IKHTISAR -->
+    <div class="panel active" id="panel-ikhtisar">
+      <div class="toolbar"><span class="info" id="ikhtisarInfo"></span></div>
+      <div id="ikhtisarEmptyMsg"></div>
+      <div id="ikhtisarContent" style="display:none;">
+        <div class="stat-cards" id="ikhtisarStatCards"></div>
+        <div class="div-title" style="margin-top:22px;">Keaktifan per Divisi</div>
+        <div id="ikhtisarDivisiList"></div>
+        <div class="div-title" style="display:flex; align-items:center; justify-content:space-between;">
+          <span>Ranking Anggota</span>
+          <button class="btn-ghost" id="openRankingDetail" style="padding:3px 10px; font-size:11px;">Detail lengkap</button>
+        </div>
+        <div id="ikhtisarRankingList"></div>
+        <div class="div-title">Tren per Kegiatan</div>
+        <div id="ikhtisarKegiatanTrend"></div>
+      </div>
     </div>
 
     <!-- TAB: REKAP / MATRIX -->
@@ -293,6 +369,17 @@
     </div>
   </div>
 
+  <!-- modal: detail ranking anggota (dari tombol "Detail lengkap" di Ikhtisar) -->
+  <div class="modal-bg" id="modalRankingDetail">
+    <div class="modal" style="max-width:480px;">
+      <h3>Detail Ranking Anggota</h3>
+      <div id="rankingDetailList" style="max-height:60vh; overflow-y:auto; margin-top:4px;"></div>
+      <div class="modal-actions">
+        <button class="cancel" id="closeRankingDetail" style="flex:1;">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <div class="status-popup" id="statusPopup" style="display:none;">
     <button class="h" data-status="H" title="Hadir">H</button>
     <button class="a" data-status="A" title="Alpa">A</button>
@@ -314,6 +401,8 @@
   let popupTarget = null;
   let editAnggotaTarget = null; // { row } saat mode edit, null saat mode tambah
   let hapusAnggotaTarget = null; // { row, nama }
+  let memberPeriodeList = [];
+  let memberCurrentPeriode = null;
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -338,8 +427,35 @@
     });
     return res.json();
   }
+  // dipakai member — TANPA password sama sekali
+  async function apiGetPublic(action, extraParams){
+    const params = new URLSearchParams({ action, ...extraParams });
+    const res = await fetch(`${API_URL}?${params.toString()}`);
+    return res.json();
+  }
 
-  // ---- LOGIN ----
+  // ---- PILIH PERAN ----
+  $('#goAdminBtn').addEventListener('click', ()=>{
+    $('#roleScreen').style.display = 'none';
+    $('#loginScreen').style.display = 'flex';
+  });
+  $('#backToRoleFromLogin').addEventListener('click', ()=>{
+    $('#loginScreen').style.display = 'none';
+    $('#roleScreen').style.display = 'flex';
+    $('#passwordInput').value = '';
+    $('#loginErr').textContent = '';
+  });
+  $('#goMemberBtn').addEventListener('click', async ()=>{
+    $('#roleScreen').style.display = 'none';
+    $('#memberScreen').style.display = 'block';
+    await loadMemberPeriodeList();
+  });
+  $('#backFromMember').addEventListener('click', ()=>{
+    $('#memberScreen').style.display = 'none';
+    $('#roleScreen').style.display = 'flex';
+  });
+
+  // ---- LOGIN ADMIN ----
   $('#loginBtn').addEventListener('click', doLogin);
   $('#passwordInput').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doLogin(); });
 
@@ -366,11 +482,184 @@
   $('#logoutBtn').addEventListener('click', ()=>{
     adminPassword = '';
     $('#app').style.display = 'none';
-    $('#loginScreen').style.display = 'flex';
+    $('#roleScreen').style.display = 'flex';
     $('#passwordInput').value = '';
   });
 
-  // ---- TABS ----
+  // ---- MEMBER: ikhtisar read-only, TANPA login ----
+  async function loadMemberPeriodeList(){
+    const result = await apiGetPublic('list_periode_public');
+    if(!result.ok){ showToast(result.error || 'Gagal memuat periode', true); return; }
+    memberPeriodeList = result.data;
+    if(memberPeriodeList.length === 0){ $('#memberInfo').textContent = 'Belum ada data periode.'; return; }
+    if(!memberCurrentPeriode || !memberPeriodeList.includes(memberCurrentPeriode)) memberCurrentPeriode = memberPeriodeList[0];
+    $('#memberPeriodeSelect').innerHTML = memberPeriodeList.map(p => `<option value="${p}" ${p===memberCurrentPeriode?'selected':''}>${p}</option>`).join('');
+    await loadMemberData();
+  }
+
+  $('#memberPeriodeSelect').addEventListener('change', async (e)=>{
+    memberCurrentPeriode = e.target.value;
+    await loadMemberData();
+  });
+
+  async function loadMemberData(){
+    const result = await apiGetPublic('public_data', { periode: memberCurrentPeriode });
+    if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
+    renderIkhtisar_('member', result.data);
+  }
+
+  // dipakai member (data dari public_data) DAN admin (data dihitung dari dashboardData yang sudah dimuat)
+  function renderIkhtisar_(prefix, data){
+    $(`#${prefix}Info`).textContent = `${data.total_anggota} anggota · ${data.total_kegiatan} kegiatan tercatat`;
+
+    if(data.total_kegiatan === 0 || data.total_anggota === 0){
+      $(`#${prefix}Content`).style.display = 'none';
+      $(`#${prefix}EmptyMsg`).innerHTML = '<div class="empty-msg">Belum ada data untuk periode ini.</div>';
+      return;
+    }
+    $(`#${prefix}EmptyMsg`).innerHTML = '';
+    $(`#${prefix}Content`).style.display = 'block';
+
+    renderStatCards_(prefix, data);
+    renderDivisiBars_(prefix, data.per_divisi);
+    renderIkhtisarRanking_(prefix, data.divisi);
+    renderKegiatanTrend_(prefix, data.per_kegiatan);
+  }
+
+  function renderStatCards_(prefix, data){
+    const k = data.keseluruhan;
+    const pct = k.persen_hadir !== null ? `${k.persen_hadir}%` : '–';
+    $(`#${prefix}StatCards`).innerHTML = `
+      <div class="stat-card"><div class="num">${data.total_anggota}</div><div class="lbl">Anggota</div></div>
+      <div class="stat-card"><div class="num">${data.total_kegiatan}</div><div class="lbl">Kegiatan</div></div>
+      <div class="stat-card"><div class="num">${pct}</div><div class="lbl">Rata-rata Hadir</div></div>
+    `;
+  }
+
+  function renderDivisiBars_(prefix, perDivisi){
+    const wrap = $(`#${prefix}DivisiList`);
+    wrap.innerHTML = '';
+    if(!perDivisi.length){ wrap.innerHTML = '<div class="empty-msg">Belum ada divisi.</div>'; return; }
+
+    const terurut = [...perDivisi].sort((a,b)=>{
+      if(a.persen_hadir_rata2 === null) return 1;
+      if(b.persen_hadir_rata2 === null) return -1;
+      return b.persen_hadir_rata2 - a.persen_hadir_rata2;
+    });
+
+    terurut.forEach(d=>{
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      const pct = d.persen_hadir_rata2;
+      row.innerHTML = `
+        <span class="bar-name">${d.nama}<span class="bar-sub">${d.jumlah_anggota} anggota</span></span>
+        <span class="bar-wrap"><span class="bar-fill" style="width:${pct !== null ? pct : 0}%"></span></span>
+        <span class="bar-pct ${pct === null ? 'na' : ''}">${pct !== null ? pct + '%' : 'Belum ada data'}</span>
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderIkhtisarRanking_(prefix, divisiData){
+    const semuaAnggota = [];
+    divisiData.forEach(div => div.anggota.forEach(a => semuaAnggota.push(a)));
+
+    const terurut = semuaAnggota.filter(a => a.stats.persen_hadir !== null)
+      .sort((a,b) => b.stats.persen_hadir - a.stats.persen_hadir);
+    const belumAdaData = semuaAnggota.filter(a => a.stats.persen_hadir === null);
+
+    const wrap = $(`#${prefix}RankingList`);
+    wrap.innerHTML = '';
+    if(terurut.length === 0){
+      wrap.innerHTML = '<div class="empty-msg">Belum ada kehadiran yang ditandai.</div>';
+      return;
+    }
+
+    const topPct = terurut[0].stats.persen_hadir;
+    terurut.forEach((a, idx)=>{
+      const isTop = a.stats.persen_hadir === topPct && topPct > 0;
+      const row = document.createElement('div');
+      row.className = 'rank-row' + (isTop ? ' top' : '');
+      row.innerHTML = `
+        <span class="rank-medal">${isTop ? '🏆' : (idx+1)}</span>
+        <span class="rank-name">${a.nama}</span>
+        <span class="rank-bar-wrap"><span class="rank-bar" style="width:${a.stats.persen_hadir}%"></span></span>
+        <span class="rank-pct">${a.stats.persen_hadir}%</span>
+      `;
+      wrap.appendChild(row);
+    });
+
+    if(belumAdaData.length){
+      const note = document.createElement('div');
+      note.className = 'empty-msg';
+      note.textContent = `${belumAdaData.length} anggota belum punya kehadiran tertandai.`;
+      wrap.appendChild(note);
+    }
+  }
+
+  function renderKegiatanTrend_(prefix, perKegiatan){
+    const wrap = $(`#${prefix}KegiatanTrend`);
+    wrap.innerHTML = '';
+    if(!perKegiatan.length){ wrap.innerHTML = '<div class="empty-msg">Belum ada kegiatan.</div>'; return; }
+
+    perKegiatan.forEach(k=>{
+      const pct = k.persen_hadir;
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <span class="bar-name">${k.nama}<span class="bar-sub">${k.tanggal}</span></span>
+        <span class="bar-wrap"><span class="bar-fill" style="width:${pct !== null ? pct : 0}%"></span></span>
+        <span class="bar-pct ${pct === null ? 'na' : ''}">${pct !== null ? pct + '%' : 'Belum ditandai'}</span>
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  // Versi admin: dihitung langsung dari dashboardData yang sudah dimuat (admin_data),
+  // jadi tidak perlu panggilan API tambahan — logikanya sama persis dengan
+  // buildPublicSummary_ di backend, cuma dijalankan di browser dari data yang sudah ada.
+  function computeIkhtisarDariDashboard_(dashboardData){
+    const semuaAnggota = [];
+    dashboardData.divisi.forEach(d => d.anggota.forEach(a => semuaAnggota.push(a)));
+
+    let totH = 0, totA = 0, totI = 0, totB = 0;
+    semuaAnggota.forEach(a => { totH += a.stats.H; totA += a.stats.A; totI += a.stats.I; totB += a.stats.B; });
+    const totalTertandai = totH + totA + totI;
+    const persenHadir = totalTertandai > 0 ? Math.round((totH / totalTertandai) * 1000) / 10 : null;
+
+    const perKegiatan = dashboardData.kegiatan.map(k=>{
+      let h = 0, a = 0, i = 0, b = 0;
+      semuaAnggota.forEach(ang=>{
+        const st = ang.kehadiran[k.col] || '';
+        if(st === 'H') h++;
+        else if(st === 'A') a++;
+        else if(st === 'I') i++;
+        else if(st === 'B') b++;
+      });
+      const total = h + a + i;
+      return { nama: k.nama, tanggal: k.tanggal, H: h, A: a, I: i, B: b,
+        persen_hadir: total > 0 ? Math.round((h / total) * 1000) / 10 : null };
+    });
+
+    const perDivisi = dashboardData.divisi.map(d=>{
+      const punyaData = d.anggota.filter(a => a.stats.persen_hadir !== null);
+      const rata2 = punyaData.length
+        ? Math.round((punyaData.reduce((s,a)=>s+a.stats.persen_hadir, 0) / punyaData.length) * 10) / 10
+        : null;
+      return { nama: d.nama, jumlah_anggota: d.anggota.length, persen_hadir_rata2: rata2 };
+    });
+
+    return {
+      total_kegiatan: dashboardData.kegiatan.length,
+      total_anggota: semuaAnggota.length,
+      keseluruhan: { H: totH, A: totA, I: totI, B: totB, persen_hadir: persenHadir },
+      per_kegiatan: perKegiatan,
+      per_divisi: perDivisi,
+      divisi: dashboardData.divisi
+    };
+  }
+
+  // ---- TABS (ADMIN) ----
   $$('.tab-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       $$('.tab-btn').forEach(b=> b.classList.remove('active'));
@@ -420,25 +709,28 @@
     const result = await apiGet('admin_data', { periode: currentPeriode });
     if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
     dashboardData = result.data;
-    renderRanking();
+    renderIkhtisar_('ikhtisar', computeIkhtisarDariDashboard_(dashboardData));
+    renderRankingDetail_();
     renderMatrix();
     renderAnggota();
   }
 
-  // ---- RANKING TAB ----
-  function renderRanking(){
+  // ---- MODAL: DETAIL RANKING ANGGOTA (dibuka dari tombol di tab Ikhtisar) ----
+  $('#openRankingDetail').addEventListener('click', ()=>{
+    renderRankingDetail_();
+    $('#modalRankingDetail').classList.add('show');
+  });
+  $('#closeRankingDetail').addEventListener('click', ()=> $('#modalRankingDetail').classList.remove('show'));
+
+  function renderRankingDetail_(){
     const semuaAnggota = [];
     dashboardData.divisi.forEach(div=> div.anggota.forEach(a=> semuaAnggota.push(a)));
-
-    $('#rankingInfo').textContent = dashboardData.kegiatan.length
-      ? `${dashboardData.kegiatan.length} kegiatan tercatat · diurutkan dari persentase hadir tertinggi`
-      : 'Belum ada kegiatan. Tambah kegiatan dulu di tab Rekap Kehadiran.';
 
     const terurut = semuaAnggota.filter(a => a.stats.persen_hadir !== null)
       .sort((a,b)=> b.stats.persen_hadir - a.stats.persen_hadir);
     const belumAdaData = semuaAnggota.filter(a => a.stats.persen_hadir === null);
 
-    const wrap = $('#rankingList');
+    const wrap = $('#rankingDetailList');
     wrap.innerHTML = '';
 
     if(terurut.length === 0){
