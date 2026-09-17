@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manajemen Pemakaian Printer</title>
+<title>Dashboard Keaktifan Anggota — KSPM ESTOC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -22,6 +22,7 @@
 
   /* ---- LOGIN ---- */
   #loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #roleScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
   .login-box{
     background:var(--navy-panel); border:1px solid var(--line); border-radius:14px;
     padding:32px 28px; width:100%; max-width:340px; text-align:center;
@@ -73,43 +74,93 @@
 
   .toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; flex-wrap:wrap; }
   .toolbar .info{ color:var(--text-lo); font-size:12.5px; }
-  .toolbar .btn-group{ display:flex; gap:8px; flex-wrap:wrap; }
   .btn-primary{
     background:var(--gold); color:#1A1204; border:none; border-radius:9px;
     padding:10px 16px; font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; white-space:nowrap;
   }
 
+  /* ---- RANKING TAB ---- */
   .div-title{ color:var(--gold); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; margin:20px 0 8px; }
   .div-title:first-child{ margin-top:0; }
+  .rank-row{
+    background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
+  }
+  .rank-row.top{ border-color:var(--amber); background:linear-gradient(90deg, rgba(242,180,65,.14), var(--navy-panel) 70%); }
+  .rank-medal{ font-size:16px; width:22px; text-align:center; flex:0 0 auto; }
+  .rank-name{ font-weight:600; flex:1; min-width:0; }
+  .rank-bar-wrap{ flex:1 1 120px; min-width:80px; height:7px; background:var(--navy-deep); border-radius:99px; overflow:hidden; border:1px solid var(--line); }
+  .rank-bar{ height:100%; background:var(--teal); border-radius:99px; }
+  .rank-row.top .rank-bar{ background:var(--amber); }
+  .rank-pct{ font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; width:52px; text-align:right; flex:0 0 auto; }
+  .rank-detail{ color:var(--text-lo); font-size:11.5px; flex:0 0 auto; white-space:nowrap; }
 
-  /* ---- stat card (stok kertas) ---- */
-  .stat-cards{ display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:18px; }
+  /* ---- MEMBER: ringkasan & analisa lain ---- */
+  .stat-cards{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
   .stat-card{
     background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
-    padding:18px 10px; text-align:center;
+    padding:14px 10px; text-align:center;
   }
-  .stat-card .num{ font-family:'Oswald',sans-serif; font-weight:700; font-size:32px; color:var(--gold); }
-  .stat-card .lbl{ color:var(--text-lo); font-size:11px; margin-top:3px; text-transform:uppercase; letter-spacing:.04em; }
+  .stat-card .num{ font-family:'Oswald',sans-serif; font-weight:700; font-size:22px; color:var(--gold); }
+  .stat-card .lbl{ color:var(--text-lo); font-size:11px; margin-top:3px; }
+  @media (max-width:420px){ .stat-cards{ grid-template-columns:1fr 1fr; } }
 
-  /* ---- baris (anggota / penjualan / kertas / kategori) ---- */
-  .bar-row, .anggota-row{
+  .bar-row{
     background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
-    padding:11px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:11px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
   }
-  .bar-row .bar-name, .anggota-row .nama{ font-weight:600; flex:1 1 40%; min-width:0; }
+  .bar-row .bar-name{ font-weight:600; flex:1 1 40%; min-width:0; }
   .bar-row .bar-name .bar-sub{ display:block; color:var(--text-lo); font-weight:400; font-size:11px; margin-top:2px; }
-  .bar-row .bar-val{ font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; }
-  .bar-row .bar-val.warn{ color:var(--amber); }
-  .quota-chips{ display:flex; gap:5px; flex-wrap:wrap; flex:1 1 260px; }
-  .quota-chip{
-    display:inline-flex; align-items:baseline; gap:3px; padding:3px 8px; border-radius:20px;
-    font-size:10.5px; font-weight:600; border:1px solid var(--line);
+  .bar-row .bar-wrap{ flex:1 1 100px; min-width:60px; height:7px; background:var(--navy-deep); border-radius:99px; overflow:hidden; border:1px solid var(--line); }
+  .bar-row .bar-fill{ height:100%; background:var(--teal); border-radius:99px; }
+  .bar-row .bar-pct{ font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; width:46px; text-align:right; flex:0 0 auto; }
+  .bar-row .bar-pct.na{ color:var(--text-lo); font-family:'Inter',sans-serif; font-weight:400; font-size:11px; }
+  .matrix-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  table.matrix{ border-collapse:collapse; font-size:12.5px; white-space:nowrap; }
+  table.matrix th, table.matrix td{ padding:8px 10px; border-bottom:1px solid var(--line); text-align:center; }
+  table.matrix thead th{ background:var(--navy-panel-2); font-family:'Oswald',sans-serif; font-weight:600; font-size:11.5px; color:var(--gold); vertical-align:bottom; }
+  table.matrix thead th .keg-nama{ display:block; max-width:90px; white-space:normal; }
+  table.matrix thead th .keg-tgl{ display:block; color:var(--text-lo); font-weight:400; font-size:10.5px; margin-top:3px; }
+  .keg-edit-btn{
+    margin-top:5px; background:transparent; border:1px solid var(--line); color:var(--text-lo);
+    border-radius:6px; width:22px; height:20px; font-size:11px; cursor:pointer; font-family:'Inter',sans-serif;
   }
-  .quota-chip .b{ opacity:.7; font-weight:500; }
-  .quota-chip.penuh{ background:rgba(62,217,168,.14); color:var(--teal); border-color:rgba(62,217,168,.35); }
-  .quota-chip.sedikit{ background:rgba(242,180,65,.14); color:var(--amber); border-color:rgba(242,180,65,.35); }
-  .quota-chip.habis{ background:rgba(226,96,79,.14); color:var(--rust); border-color:rgba(226,96,79,.35); }
+  .keg-edit-btn:hover{ border-color:var(--gold); color:var(--gold); }
+  table.matrix td.col-no, table.matrix th.col-no{ position:sticky; left:0; background:var(--navy-panel); z-index:2; width:34px; color:var(--text-lo); }
+  table.matrix td.col-nama, table.matrix th.col-nama{ position:sticky; left:34px; background:var(--navy-panel); z-index:2; text-align:left; font-weight:600; min-width:150px; }
+  table.matrix thead th.col-no, table.matrix thead th.col-nama{ background:var(--navy-panel-2); z-index:3; }
+  table.matrix tr.div-row td{ background:var(--navy-deep); color:var(--gold); font-family:'Oswald',sans-serif; font-weight:600; text-align:left; position:sticky; left:0; }
+  .cell-status{
+    display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
+    border-radius:7px; border:1px solid var(--line); cursor:pointer; font-weight:700; font-size:12px; font-family:'Oswald',sans-serif;
+  }
+  .cell-status.h{ background:rgba(62,217,168,.16); color:var(--teal); border-color:rgba(62,217,168,.4); }
+  .cell-status.a{ background:rgba(226,96,79,.16); color:var(--rust); border-color:rgba(226,96,79,.4); }
+  .cell-status.i{ background:rgba(242,180,65,.16); color:var(--amber); border-color:rgba(242,180,65,.4); }
+  .cell-status.b{ background:rgba(124,147,172,.16); color:var(--grey); border-color:rgba(124,147,172,.4); }
+  .cell-status.empty{ color:var(--text-lo); }
 
+  /* ---- popup pilih status ---- */
+  .status-popup{
+    position:fixed; background:var(--navy-panel-2); border:1px solid var(--gold); border-radius:10px;
+    padding:8px; display:flex; gap:6px; z-index:80; box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  .status-popup button{
+    width:34px; height:34px; border-radius:7px; border:1px solid var(--line); background:var(--navy-deep);
+    color:var(--text-hi); font-family:'Oswald',sans-serif; font-weight:700; font-size:13px; cursor:pointer;
+  }
+  .status-popup button.h{ color:var(--teal); }
+  .status-popup button.a{ color:var(--rust); }
+  .status-popup button.i{ color:var(--amber); }
+  .status-popup button.b{ color:var(--grey); }
+  .status-popup button.clear{ color:var(--text-lo); font-size:16px; }
+
+  /* ---- ANGGOTA TAB ---- */
+  .anggota-row{
+    background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
+    padding:11px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
+  }
+  .anggota-row .nama{ font-weight:600; flex:1; min-width:0; }
   .icon-btn{
     background:transparent; border:1px solid var(--line); color:var(--text-lo); border-radius:7px;
     width:32px; height:32px; cursor:pointer; font-size:14px; flex:0 0 auto;
@@ -141,29 +192,71 @@
     font-size:13.5px; font-weight:600; transition:transform .25s ease; z-index:90;
   }
   .toast.err{ background:var(--rust); color:#2A0906; }
-  .toast.warn{ background:var(--amber); color:#3A2600; }
   .toast.show{ transform:translate(-50%,0); }
 </style>
 </head>
 <body>
 
-  <!-- ============== LOGIN ============== -->
-  <div id="loginScreen">
+  <!-- ============== PILIH PERAN ============== -->
+  <div id="roleScreen">
     <div class="login-box">
-      <p class="kicker">Manajemen Printer</p>
+      <p class="kicker">KSPM ESTOC UNSRAT</p>
+      <h2>Dashboard Keaktifan</h2>
+      <p class="sub" style="margin-bottom:16px;">Masuk sebagai:</p>
+      <button id="goAdminBtn">Admin</button>
+      <button id="goMemberBtn" style="margin-top:10px; background:transparent; border:1px solid var(--line); color:var(--text-hi);">Anggota</button>
+    </div>
+  </div>
+
+  <!-- ============== LOGIN ADMIN ============== -->
+  <div id="loginScreen" style="display:none;">
+    <div class="login-box">
+      <p class="kicker">KSPM ESTOC UNSRAT</p>
       <h2>Login Admin</h2>
       <input type="password" id="passwordInput" placeholder="Password admin">
       <button id="loginBtn">Masuk</button>
       <div class="login-err" id="loginErr"></div>
+      <button id="backToRoleFromLogin" class="btn-ghost" style="margin-top:14px; width:100%;">← Kembali</button>
     </div>
   </div>
 
-  <!-- ============== APP ============== -->
+  <!-- ============== MEMBER (read-only) ============== -->
+  <div id="memberScreen" style="display:none; max-width:680px; margin:0 auto; padding:20px 16px 60px;">
+    <div class="topbar">
+      <div>
+        <p class="kicker">KSPM ESTOC UNSRAT</p>
+        <h1>Ikhtisar Keaktifan Anggota</h1>
+      </div>
+      <button class="logout" id="backFromMember">Kembali</button>
+    </div>
+    <div class="periode-bar">
+      <label>Periode</label>
+      <select id="memberPeriodeSelect"></select>
+    </div>
+    <div class="toolbar"><span class="info" id="memberInfo"></span></div>
+
+    <div id="memberEmptyMsg"></div>
+
+    <div id="memberContent" style="display:none;">
+      <div class="stat-cards" id="memberStatCards"></div>
+
+      <div class="div-title" style="margin-top:22px;">Keaktifan per Divisi</div>
+      <div id="memberDivisiList"></div>
+
+      <div class="div-title">Ranking Anggota</div>
+      <div id="memberRankingList"></div>
+
+      <div class="div-title">Tren per Kegiatan</div>
+      <div id="memberKegiatanTrend"></div>
+    </div>
+  </div>
+
+  <!-- ============== APP (ADMIN) ============== -->
   <div id="app">
     <div class="topbar">
       <div>
-        <p class="kicker">Manajemen Printer</p>
-        <h1>Dashboard Pemakaian Printer</h1>
+        <p class="kicker">KSPM ESTOC UNSRAT</p>
+        <h1>Dashboard Keaktifan Anggota</h1>
       </div>
       <button class="logout" id="logoutBtn">Keluar</button>
     </div>
@@ -175,56 +268,45 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="anggota">Anggota</button>
-      <button class="tab-btn" data-tab="pemakaian">Catat Pemakaian</button>
-      <button class="tab-btn" data-tab="penjualan">Penjualan</button>
-      <button class="tab-btn" data-tab="kertas">Kertas</button>
+      <button class="tab-btn active" data-tab="ikhtisar">Ikhtisar</button>
+      <button class="tab-btn" data-tab="rekap">Rekap Kehadiran</button>
+      <button class="tab-btn" data-tab="anggota">Anggota</button>
+    </div>
+
+    <!-- TAB: IKHTISAR -->
+    <div class="panel active" id="panel-ikhtisar">
+      <div class="toolbar"><span class="info" id="ikhtisarInfo"></span></div>
+      <div id="ikhtisarEmptyMsg"></div>
+      <div id="ikhtisarContent" style="display:none;">
+        <div class="stat-cards" id="ikhtisarStatCards"></div>
+        <div class="div-title" style="margin-top:22px;">Keaktifan per Divisi</div>
+        <div id="ikhtisarDivisiList"></div>
+        <div class="div-title" style="display:flex; align-items:center; justify-content:space-between;">
+          <span>Ranking Anggota</span>
+          <button class="btn-ghost" id="openRankingDetail" style="padding:3px 10px; font-size:11px;">Detail lengkap</button>
+        </div>
+        <div id="ikhtisarRankingList"></div>
+        <div class="div-title">Tren per Kegiatan</div>
+        <div id="ikhtisarKegiatanTrend"></div>
+      </div>
+    </div>
+
+    <!-- TAB: REKAP / MATRIX -->
+    <div class="panel" id="panel-rekap">
+      <div class="toolbar">
+        <span class="info" id="rekapInfo"></span>
+        <button class="btn-primary" id="openTambahKegiatan">+ Tambah kegiatan</button>
+      </div>
+      <div class="matrix-scroll"><table class="matrix" id="matrixTable"></table></div>
     </div>
 
     <!-- TAB: ANGGOTA -->
-    <div class="panel active" id="panel-anggota">
+    <div class="panel" id="panel-anggota">
       <div class="toolbar">
         <span class="info" id="anggotaInfo"></span>
-        <div class="btn-group">
-          <button class="btn-ghost" id="openTambahBulan">+ Tambah bulan</button>
-          <button class="btn-primary" id="openTambahAnggota">+ Tambah anggota</button>
-        </div>
+        <button class="btn-primary" id="openTambahAnggota">+ Tambah anggota</button>
       </div>
       <div id="anggotaList"></div>
-    </div>
-
-    <!-- TAB: PEMAKAIAN -->
-    <div class="panel" id="panel-pemakaian">
-      <div class="toolbar">
-        <span class="info">Kuota gratis 10 lembar/bulan per anggota. Kelebihan otomatis tercatat sebagai piutang di tab Penjualan.</span>
-        <div class="btn-group">
-          <button class="btn-ghost" id="openPemakaianKategori">+ Pemakaian divisi/panitia</button>
-          <button class="btn-primary" id="openPemakaianAnggota">+ Catat pemakaian anggota</button>
-        </div>
-      </div>
-      <div class="div-title">Rekap pemakaian per kategori (tanpa kuota)</div>
-      <div id="pemakaianKategoriList"></div>
-    </div>
-
-    <!-- TAB: PENJUALAN -->
-    <div class="panel" id="panel-penjualan">
-      <div class="toolbar">
-        <span class="info" id="penjualanInfo"></span>
-        <button class="btn-primary" id="openTambahPenjualan">+ Tambah pembayaran</button>
-      </div>
-      <div id="penjualanList"></div>
-    </div>
-
-    <!-- TAB: KERTAS -->
-    <div class="panel" id="panel-kertas">
-      <div class="stat-cards">
-        <div class="stat-card"><div class="num" id="stokBesar">0</div><div class="lbl">Lembar kertas tersisa</div></div>
-      </div>
-      <div class="toolbar">
-        <span class="info">Riwayat isi ulang kertas</span>
-        <button class="btn-primary" id="openTambahKertas">+ Isi ulang kertas</button>
-      </div>
-      <div id="kertasList"></div>
     </div>
   </div>
 
@@ -232,11 +314,9 @@
   <div class="modal-bg" id="modalPeriodeBaru">
     <div class="modal">
       <h3>Periode baru</h3>
-      <p class="sub">Daftar anggota disalin dari periode aktif. Sisa stok kertas periode lama ikut dibawa.</p>
+      <p class="sub">Daftar anggota disalin dari periode yang sedang dipilih, tanpa data kegiatan/kehadiran.</p>
       <label>Nama periode</label>
       <input type="text" id="newNamaPeriode" placeholder="mis. 2027">
-      <label>Bulan awal (pisahkan koma)</label>
-      <input type="text" id="newBulanAwal" placeholder="mis. Januari,Februari,Maret" value="Januari">
       <div class="modal-actions">
         <button class="cancel" id="cancelPeriodeBaru">Batal</button>
         <button class="save" id="savePeriodeBaru">Buat</button>
@@ -244,16 +324,18 @@
     </div>
   </div>
 
-  <!-- modal: tambah bulan -->
-  <div class="modal-bg" id="modalTambahBulan">
+  <!-- modal: tambah kegiatan -->
+  <div class="modal-bg" id="modalTambahKegiatan">
     <div class="modal">
-      <h3>Tambah kolom bulan</h3>
-      <p class="sub">Ditambahkan ke periode yang sedang dipilih, semua anggota mulai dari jatah penuh 10.</p>
-      <label>Nama bulan</label>
-      <input type="text" id="newNamaBulan" placeholder="mis. Januari">
+      <h3 id="modalKegiatanTitle">Tambah kegiatan baru</h3>
+      <label>Nama kegiatan</label>
+      <input type="text" id="newNamaKegiatan" placeholder="mis. Rapat Umum, Bakti Sosial, dll">
+      <label>Tanggal kegiatan</label>
+      <input type="date" id="newTanggalKegiatan">
       <div class="modal-actions">
-        <button class="cancel" id="cancelTambahBulan">Batal</button>
-        <button class="save" id="saveTambahBulan">Tambah</button>
+        <button class="danger" id="deleteKegiatanBtn" style="display:none;">Hapus</button>
+        <button class="cancel" id="cancelTambahKegiatan">Batal</button>
+        <button class="save" id="saveTambahKegiatan">Simpan</button>
       </div>
     </div>
   </div>
@@ -279,6 +361,7 @@
     <div class="modal">
       <h3>Hapus anggota?</h3>
       <p class="sub" id="hapusAnggotaNama"></p>
+      <p class="sub">Ini hanya menghapus anggota dari periode yang sedang dipilih. Periode lain tidak terpengaruh.</p>
       <div class="modal-actions">
         <button class="cancel" id="cancelHapusAnggota">Batal</button>
         <button class="danger" id="confirmHapusAnggota">Hapus</button>
@@ -286,169 +369,297 @@
     </div>
   </div>
 
-  <!-- modal: catat pemakaian anggota -->
-  <div class="modal-bg" id="modalPemakaianAnggota">
-    <div class="modal">
-      <h3>Catat pemakaian anggota</h3>
-      <p class="sub">Kelebihan dari jatah 10/bulan otomatis masuk ke tab Penjualan.</p>
-      <label>Nama anggota</label>
-      <select id="pmkAnggotaNama"></select>
-      <label>Bulan</label>
-      <select id="pmkAnggotaBulan"></select>
-      <label>Jumlah lembar</label>
-      <input type="number" min="1" id="pmkAnggotaJumlah">
+  <!-- modal: detail ranking anggota (dari tombol "Detail lengkap" di Ikhtisar) -->
+  <div class="modal-bg" id="modalRankingDetail">
+    <div class="modal" style="max-width:480px;">
+      <h3>Detail Ranking Anggota</h3>
+      <div id="rankingDetailList" style="max-height:60vh; overflow-y:auto; margin-top:4px;"></div>
       <div class="modal-actions">
-        <button class="cancel" id="cancelPemakaianAnggota">Batal</button>
-        <button class="save" id="savePemakaianAnggota">Catat</button>
+        <button class="cancel" id="closeRankingDetail" style="flex:1;">Tutup</button>
       </div>
     </div>
   </div>
 
-  <!-- modal: catat pemakaian kategori -->
-  <div class="modal-bg" id="modalPemakaianKategori">
-    <div class="modal">
-      <h3>Catat pemakaian divisi/panitia/lain-lain</h3>
-      <p class="sub">Tanpa batas kuota, tidak dikenakan biaya.</p>
-      <label>Kategori</label>
-      <select id="pmkKategoriNama"></select>
-      <label>Jumlah lembar</label>
-      <input type="number" min="1" id="pmkKategoriJumlah">
-      <div class="modal-actions">
-        <button class="cancel" id="cancelPemakaianKategori">Batal</button>
-        <button class="save" id="savePemakaianKategori">Catat</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- modal: tambah/edit penjualan -->
-  <div class="modal-bg" id="modalPenjualan">
-    <div class="modal">
-      <h3 id="modalPenjualanTitle">Tambah pembayaran</h3>
-      <label>Tanggal</label>
-      <input type="date" id="pjTanggal">
-      <label>Nama</label>
-      <input type="text" id="pjNama" placeholder="Nama pembayar">
-      <label>Print (lembar)</label>
-      <input type="number" min="0" id="pjPrint" value="0">
-      <label>Fotocopy (lembar)</label>
-      <input type="number" min="0" id="pjFotocopy" value="0">
-      <label>Total pemasukan (Rp)</label>
-      <input type="number" min="0" id="pjTotal" placeholder="kosongkan jika belum bayar">
-      <div class="modal-actions">
-        <button class="cancel" id="cancelPenjualan">Batal</button>
-        <button class="save" id="savePenjualan">Simpan</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- modal: konfirmasi hapus penjualan -->
-  <div class="modal-bg" id="modalHapusPenjualan">
-    <div class="modal">
-      <h3>Hapus data penjualan?</h3>
-      <p class="sub" id="hapusPenjualanNama"></p>
-      <div class="modal-actions">
-        <button class="cancel" id="cancelHapusPenjualan">Batal</button>
-        <button class="danger" id="confirmHapusPenjualan">Hapus</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- modal: isi ulang kertas -->
-  <div class="modal-bg" id="modalKertas">
-    <div class="modal">
-      <h3>Isi ulang kertas</h3>
-      <label>Tanggal</label>
-      <input type="date" id="kertasTanggal">
-      <label>Jumlah kertas</label>
-      <input type="number" min="1" id="kertasJumlah">
-      <label>Keterangan (opsional)</label>
-      <input type="text" id="kertasKeterangan" placeholder="mis. beli 5 rim">
-      <div class="modal-actions">
-        <button class="cancel" id="cancelKertas">Batal</button>
-        <button class="save" id="saveKertas">Isi ulang</button>
-      </div>
-    </div>
+  <div class="status-popup" id="statusPopup" style="display:none;">
+    <button class="h" data-status="H" title="Hadir">H</button>
+    <button class="a" data-status="A" title="Alpa">A</button>
+    <button class="i" data-status="I" title="Izin">I</button>
+    <button class="b" data-status="B" title="Bukan peserta kegiatan ini">B</button>
+    <button class="clear" data-status="" title="Kosongkan">–</button>
   </div>
 
   <div class="toast" id="toast"></div>
 
 <script>
-  // GANTI dengan URL Web App hasil deploy Apps Script Anda (Deploy > New deployment > Web app)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/GANTI_DENGAN_DEPLOYMENT_ID/exec';
-
-  let token = null;
+  // GANTI URL di bawah ini dengan URL Web App hasil deploy Code.gs
+  // (Deploy > Manage deployments > salin "Web app URL"). Lihat README.md.
+  const API_URL = "https://script.google.com/macros/s/AKfycbwFRa2jraS9NpYcjmy_0PV2i03x6vZ24KKQPy0oecm7h0z-GI3RbT9rolqzGReY-Z9j/exec";
+  let adminPassword = '';
   let periodeList = [];
   let currentPeriode = null;
-  let data = { bulanList: [], divisiGroups: [], pemakaianKategori: [], penjualan: [], pengisianKertas: [], stokKertas: 0 };
-  let editAnggotaTarget = null;   // { nama, divisi } saat edit, null saat tambah
-  let hapusAnggotaTarget = null;  // { nama }
-  let editPenjualanTarget = null; // { id } saat edit, null saat tambah
-  let hapusPenjualanTarget = null;// { id }
+  let dashboardData = { kegiatan: [], divisi: [] };
+  let popupTarget = null;
+  let editAnggotaTarget = null; // { row } saat mode edit, null saat mode tambah
+  let hapusAnggotaTarget = null; // { row, nama }
+  let memberPeriodeList = [];
+  let memberCurrentPeriode = null;
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-  function showToast(msg, type){
+  function showToast(msg, isErr){
     const t = $('#toast');
     t.textContent = msg;
-    t.className = 'toast show' + (type ? ' ' + type : '');
-    setTimeout(()=> t.classList.remove('show'), 2800);
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    setTimeout(()=> t.classList.remove('show'), 2600);
   }
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function fmtRp(n){ return 'Rp' + Number(n).toLocaleString('id-ID'); }
 
-  async function api(action, payload){
-    const body = Object.assign({ action, token }, payload || {});
-    const res = await fetch(APPS_SCRIPT_URL, {
+  async function apiGet(action, extraParams){
+    const params = new URLSearchParams({ action, password: adminPassword, ...extraParams });
+    const res = await fetch(`${API_URL}?${params.toString()}`);
+    return res.json();
+  }
+  async function apiPost(payload){
+    const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ ...payload, password: adminPassword, periode: payload.periode || currentPeriode })
     });
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error || 'Terjadi kesalahan');
-    return json.data;
+    return res.json();
+  }
+  // dipakai member — TANPA password sama sekali
+  async function apiGetPublic(action, extraParams){
+    const params = new URLSearchParams({ action, ...extraParams });
+    const res = await fetch(`${API_URL}?${params.toString()}`);
+    return res.json();
   }
 
-  // ---- LOGIN ----
+  // ---- PILIH PERAN ----
+  $('#goAdminBtn').addEventListener('click', ()=>{
+    $('#roleScreen').style.display = 'none';
+    $('#loginScreen').style.display = 'flex';
+  });
+  $('#backToRoleFromLogin').addEventListener('click', ()=>{
+    $('#loginScreen').style.display = 'none';
+    $('#roleScreen').style.display = 'flex';
+    $('#passwordInput').value = '';
+    $('#loginErr').textContent = '';
+  });
+  $('#goMemberBtn').addEventListener('click', async ()=>{
+    $('#roleScreen').style.display = 'none';
+    $('#memberScreen').style.display = 'block';
+    await loadMemberPeriodeList();
+  });
+  $('#backFromMember').addEventListener('click', ()=>{
+    $('#memberScreen').style.display = 'none';
+    $('#roleScreen').style.display = 'flex';
+  });
+
+  // ---- LOGIN ADMIN ----
   $('#loginBtn').addEventListener('click', doLogin);
   $('#passwordInput').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doLogin(); });
 
   async function doLogin(){
-    const password = $('#passwordInput').value.trim();
-    if(!password) return;
+    const pw = $('#passwordInput').value.trim();
+    if(!pw) return;
+    adminPassword = pw;
     $('#loginErr').textContent = 'Memeriksa...';
     try{
-      const res = await api('login', { password });
-      token = res.token;
-      localStorage.setItem('printerAdminToken', token);
-      await bootApp();
+      const result = await apiPost({ action: 'login' });
+      if(result.ok){
+        $('#loginScreen').style.display = 'none';
+        $('#app').style.display = 'block';
+        await loadPeriodeList();
+      } else {
+        $('#loginErr').textContent = 'Password salah, coba lagi.';
+        adminPassword = '';
+      }
     } catch(err){
-      $('#loginErr').textContent = err.message;
-      token = null;
+      $('#loginErr').textContent = 'Gagal terhubung ke server. Cek API_URL.';
     }
   }
+
   $('#logoutBtn').addEventListener('click', ()=>{
-    localStorage.removeItem('printerAdminToken');
-    token = null;
+    adminPassword = '';
     $('#app').style.display = 'none';
-    $('#loginScreen').style.display = 'flex';
+    $('#roleScreen').style.display = 'flex';
     $('#passwordInput').value = '';
   });
-  window.addEventListener('load', async ()=>{
-    const saved = localStorage.getItem('printerAdminToken');
-    if(saved){ token = saved; try{ await bootApp(); } catch(e){ localStorage.removeItem('printerAdminToken'); } }
-  });
 
-  async function bootApp(){
-    $('#loginScreen').style.display = 'none';
-    $('#app').style.display = 'block';
-    const info = await api('getPeriodeList');
-    currentPeriode = info.periodeAktif;
-    renderPeriodeSelect(info.periodeList, info.periodeAktif);
-    await loadData();
+  // ---- MEMBER: ikhtisar read-only, TANPA login ----
+  async function loadMemberPeriodeList(){
+    const result = await apiGetPublic('list_periode_public');
+    if(!result.ok){ showToast(result.error || 'Gagal memuat periode', true); return; }
+    memberPeriodeList = result.data;
+    if(memberPeriodeList.length === 0){ $('#memberInfo').textContent = 'Belum ada data periode.'; return; }
+    if(!memberCurrentPeriode || !memberPeriodeList.includes(memberCurrentPeriode)) memberCurrentPeriode = memberPeriodeList[0];
+    $('#memberPeriodeSelect').innerHTML = memberPeriodeList.map(p => `<option value="${p}" ${p===memberCurrentPeriode?'selected':''}>${p}</option>`).join('');
+    await loadMemberData();
   }
 
-  // ---- TABS ----
+  $('#memberPeriodeSelect').addEventListener('change', async (e)=>{
+    memberCurrentPeriode = e.target.value;
+    await loadMemberData();
+  });
+
+  async function loadMemberData(){
+    const result = await apiGetPublic('public_data', { periode: memberCurrentPeriode });
+    if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
+    renderIkhtisar_('member', result.data);
+  }
+
+  // dipakai member (data dari public_data) DAN admin (data dihitung dari dashboardData yang sudah dimuat)
+  function renderIkhtisar_(prefix, data){
+    $(`#${prefix}Info`).textContent = `${data.total_anggota} anggota · ${data.total_kegiatan} kegiatan tercatat`;
+
+    if(data.total_kegiatan === 0 || data.total_anggota === 0){
+      $(`#${prefix}Content`).style.display = 'none';
+      $(`#${prefix}EmptyMsg`).innerHTML = '<div class="empty-msg">Belum ada data untuk periode ini.</div>';
+      return;
+    }
+    $(`#${prefix}EmptyMsg`).innerHTML = '';
+    $(`#${prefix}Content`).style.display = 'block';
+
+    renderStatCards_(prefix, data);
+    renderDivisiBars_(prefix, data.per_divisi);
+    renderIkhtisarRanking_(prefix, data.divisi);
+    renderKegiatanTrend_(prefix, data.per_kegiatan);
+  }
+
+  function renderStatCards_(prefix, data){
+    const k = data.keseluruhan;
+    const pct = k.persen_hadir !== null ? `${k.persen_hadir}%` : '–';
+    $(`#${prefix}StatCards`).innerHTML = `
+      <div class="stat-card"><div class="num">${data.total_anggota}</div><div class="lbl">Anggota</div></div>
+      <div class="stat-card"><div class="num">${data.total_kegiatan}</div><div class="lbl">Kegiatan</div></div>
+      <div class="stat-card"><div class="num">${pct}</div><div class="lbl">Rata-rata Hadir</div></div>
+    `;
+  }
+
+  function renderDivisiBars_(prefix, perDivisi){
+    const wrap = $(`#${prefix}DivisiList`);
+    wrap.innerHTML = '';
+    if(!perDivisi.length){ wrap.innerHTML = '<div class="empty-msg">Belum ada divisi.</div>'; return; }
+
+    const terurut = [...perDivisi].sort((a,b)=>{
+      if(a.persen_hadir_rata2 === null) return 1;
+      if(b.persen_hadir_rata2 === null) return -1;
+      return b.persen_hadir_rata2 - a.persen_hadir_rata2;
+    });
+
+    terurut.forEach(d=>{
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      const pct = d.persen_hadir_rata2;
+      row.innerHTML = `
+        <span class="bar-name">${d.nama}<span class="bar-sub">${d.jumlah_anggota} anggota</span></span>
+        <span class="bar-wrap"><span class="bar-fill" style="width:${pct !== null ? pct : 0}%"></span></span>
+        <span class="bar-pct ${pct === null ? 'na' : ''}">${pct !== null ? pct + '%' : 'Belum ada data'}</span>
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderIkhtisarRanking_(prefix, divisiData){
+    const semuaAnggota = [];
+    divisiData.forEach(div => div.anggota.forEach(a => semuaAnggota.push(a)));
+
+    const terurut = semuaAnggota.filter(a => a.stats.persen_hadir !== null)
+      .sort((a,b) => b.stats.persen_hadir - a.stats.persen_hadir);
+    const belumAdaData = semuaAnggota.filter(a => a.stats.persen_hadir === null);
+
+    const wrap = $(`#${prefix}RankingList`);
+    wrap.innerHTML = '';
+    if(terurut.length === 0){
+      wrap.innerHTML = '<div class="empty-msg">Belum ada kehadiran yang ditandai.</div>';
+      return;
+    }
+
+    const topPct = terurut[0].stats.persen_hadir;
+    terurut.forEach((a, idx)=>{
+      const isTop = a.stats.persen_hadir === topPct && topPct > 0;
+      const row = document.createElement('div');
+      row.className = 'rank-row' + (isTop ? ' top' : '');
+      row.innerHTML = `
+        <span class="rank-medal">${isTop ? '🏆' : (idx+1)}</span>
+        <span class="rank-name">${a.nama}</span>
+        <span class="rank-bar-wrap"><span class="rank-bar" style="width:${a.stats.persen_hadir}%"></span></span>
+        <span class="rank-pct">${a.stats.persen_hadir}%</span>
+      `;
+      wrap.appendChild(row);
+    });
+
+    if(belumAdaData.length){
+      const note = document.createElement('div');
+      note.className = 'empty-msg';
+      note.textContent = `${belumAdaData.length} anggota belum punya kehadiran tertandai.`;
+      wrap.appendChild(note);
+    }
+  }
+
+  function renderKegiatanTrend_(prefix, perKegiatan){
+    const wrap = $(`#${prefix}KegiatanTrend`);
+    wrap.innerHTML = '';
+    if(!perKegiatan.length){ wrap.innerHTML = '<div class="empty-msg">Belum ada kegiatan.</div>'; return; }
+
+    perKegiatan.forEach(k=>{
+      const pct = k.persen_hadir;
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <span class="bar-name">${k.nama}<span class="bar-sub">${k.tanggal}</span></span>
+        <span class="bar-wrap"><span class="bar-fill" style="width:${pct !== null ? pct : 0}%"></span></span>
+        <span class="bar-pct ${pct === null ? 'na' : ''}">${pct !== null ? pct + '%' : 'Belum ditandai'}</span>
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  // Versi admin: dihitung langsung dari dashboardData yang sudah dimuat (admin_data),
+  // jadi tidak perlu panggilan API tambahan — logikanya sama persis dengan
+  // buildPublicSummary_ di backend, cuma dijalankan di browser dari data yang sudah ada.
+  function computeIkhtisarDariDashboard_(dashboardData){
+    const semuaAnggota = [];
+    dashboardData.divisi.forEach(d => d.anggota.forEach(a => semuaAnggota.push(a)));
+
+    let totH = 0, totA = 0, totI = 0, totB = 0;
+    semuaAnggota.forEach(a => { totH += a.stats.H; totA += a.stats.A; totI += a.stats.I; totB += a.stats.B; });
+    const totalTertandai = totH + totA + totI;
+    const persenHadir = totalTertandai > 0 ? Math.round((totH / totalTertandai) * 1000) / 10 : null;
+
+    const perKegiatan = dashboardData.kegiatan.map(k=>{
+      let h = 0, a = 0, i = 0, b = 0;
+      semuaAnggota.forEach(ang=>{
+        const st = ang.kehadiran[k.col] || '';
+        if(st === 'H') h++;
+        else if(st === 'A') a++;
+        else if(st === 'I') i++;
+        else if(st === 'B') b++;
+      });
+      const total = h + a + i;
+      return { nama: k.nama, tanggal: k.tanggal, H: h, A: a, I: i, B: b,
+        persen_hadir: total > 0 ? Math.round((h / total) * 1000) / 10 : null };
+    });
+
+    const perDivisi = dashboardData.divisi.map(d=>{
+      const punyaData = d.anggota.filter(a => a.stats.persen_hadir !== null);
+      const rata2 = punyaData.length
+        ? Math.round((punyaData.reduce((s,a)=>s+a.stats.persen_hadir, 0) / punyaData.length) * 10) / 10
+        : null;
+      return { nama: d.nama, jumlah_anggota: d.anggota.length, persen_hadir_rata2: rata2 };
+    });
+
+    return {
+      total_kegiatan: dashboardData.kegiatan.length,
+      total_anggota: semuaAnggota.length,
+      keseluruhan: { H: totH, A: totA, I: totI, B: totB, persen_hadir: persenHadir },
+      per_kegiatan: perKegiatan,
+      per_divisi: perDivisi,
+      divisi: dashboardData.divisi
+    };
+  }
+
+  // ---- TABS (ADMIN) ----
   $$('.tab-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       $$('.tab-btn').forEach(b=> b.classList.remove('active'));
@@ -459,83 +670,261 @@
   });
 
   // ---- PERIODE ----
-  function renderPeriodeSelect(list, active){
-    $('#periodeSelect').innerHTML = list.map(p => `<option value="${p}" ${p===active?'selected':''}>${p}</option>`).join('');
+  async function loadPeriodeList(){
+    const result = await apiGet('list_periode');
+    if(!result.ok){ showToast(result.error || 'Gagal memuat daftar periode', true); return; }
+    periodeList = result.data;
+    if(periodeList.length === 0){ showToast('Belum ada sheet periode. Rename tab sheet jadi "2026" dulu.', true); return; }
+    if(!currentPeriode || !periodeList.includes(currentPeriode)) currentPeriode = periodeList[0];
+    $('#periodeSelect').innerHTML = periodeList.map(p => `<option value="${p}" ${p===currentPeriode?'selected':''}>${p}</option>`).join('');
+    await loadData();
   }
+
   $('#periodeSelect').addEventListener('change', async (e)=>{
     currentPeriode = e.target.value;
     await loadData();
   });
+
   $('#openPeriodeBaru').addEventListener('click', ()=>{
     $('#newNamaPeriode').value = '';
-    $('#newBulanAwal').value = 'Januari';
     $('#modalPeriodeBaru').classList.add('show');
   });
   $('#cancelPeriodeBaru').addEventListener('click', ()=> $('#modalPeriodeBaru').classList.remove('show'));
   $('#savePeriodeBaru').addEventListener('click', async ()=>{
     const nama = $('#newNamaPeriode').value.trim();
-    const bulanAwal = $('#newBulanAwal').value.split(',').map(s=>s.trim()).filter(Boolean);
-    if(!nama || !bulanAwal.length){ showToast('Lengkapi nama periode dan bulan awal', 'err'); return; }
-    try{
-      const d = await api('addPeriode', { namaPeriode: nama, bulanAwal });
-      currentPeriode = d.periode;
-      const info = await api('getPeriodeList');
-      renderPeriodeSelect(info.periodeList, info.periodeAktif);
-      $('#modalPeriodeBaru').classList.remove('show');
+    if(!nama){ showToast('Nama periode wajib diisi', true); return; }
+    const result = await apiPost({ action:'buat_periode', nama_periode: nama, sumber_periode: currentPeriode });
+    if(result.ok){
       showToast(`Periode ${nama} dibuat`);
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
+      $('#modalPeriodeBaru').classList.remove('show');
+      currentPeriode = nama;
+      await loadPeriodeList();
+    } else {
+      showToast(result.error, true);
+    }
   });
 
-  // ---- LOAD & RENDER ----
+  // ---- LOAD DATA (periode aktif) ----
   async function loadData(){
-    const d = await api('getData', { periode: currentPeriode });
-    applyData(d);
-  }
-  function applyData(d){
-    data = d;
-    $('#stokBesar').textContent = d.stokKertas;
+    const result = await apiGet('admin_data', { periode: currentPeriode });
+    if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
+    dashboardData = result.data;
+    renderIkhtisar_('ikhtisar', computeIkhtisarDariDashboard_(dashboardData));
+    renderRankingDetail_();
+    renderMatrix();
     renderAnggota();
-    renderPemakaian();
-    renderPenjualan();
-    renderKertas();
   }
 
-  function quotaClass(sisa){ if(sisa<=0) return 'habis'; if(sisa<=3) return 'sedikit'; return 'penuh'; }
+  // ---- MODAL: DETAIL RANKING ANGGOTA (dibuka dari tombol di tab Ikhtisar) ----
+  $('#openRankingDetail').addEventListener('click', ()=>{
+    renderRankingDetail_();
+    $('#modalRankingDetail').classList.add('show');
+  });
+  $('#closeRankingDetail').addEventListener('click', ()=> $('#modalRankingDetail').classList.remove('show'));
 
-  // ---- TAB: ANGGOTA ----
+  function renderRankingDetail_(){
+    const semuaAnggota = [];
+    dashboardData.divisi.forEach(div=> div.anggota.forEach(a=> semuaAnggota.push(a)));
+
+    const terurut = semuaAnggota.filter(a => a.stats.persen_hadir !== null)
+      .sort((a,b)=> b.stats.persen_hadir - a.stats.persen_hadir);
+    const belumAdaData = semuaAnggota.filter(a => a.stats.persen_hadir === null);
+
+    const wrap = $('#rankingDetailList');
+    wrap.innerHTML = '';
+
+    if(terurut.length === 0){
+      wrap.innerHTML = '<div class="empty-msg">Belum ada kehadiran yang ditandai.</div>';
+      return;
+    }
+
+    const topPct = terurut[0].stats.persen_hadir;
+    terurut.forEach((a, idx)=>{
+      const isTop = a.stats.persen_hadir === topPct && topPct > 0;
+      const row = document.createElement('div');
+      row.className = 'rank-row' + (isTop ? ' top' : '');
+      row.innerHTML = `
+        <span class="rank-medal">${isTop ? '🏆' : (idx+1)}</span>
+        <span class="rank-name">${a.nama}</span>
+        <span class="rank-bar-wrap"><span class="rank-bar" style="width:${a.stats.persen_hadir}%"></span></span>
+        <span class="rank-pct">${a.stats.persen_hadir}%</span>
+        <span class="rank-detail">${a.stats.H}H · ${a.stats.A}A · ${a.stats.I}I${a.stats.B ? ' · ' + a.stats.B + 'B' : ''}</span>
+      `;
+      wrap.appendChild(row);
+    });
+
+    if(belumAdaData.length){
+      const note = document.createElement('div');
+      note.className = 'empty-msg';
+      note.textContent = `${belumAdaData.length} anggota belum punya kehadiran tertandai.`;
+      wrap.appendChild(note);
+    }
+  }
+
+  // ---- MATRIX TAB ----
+  function renderMatrix(){
+    $('#rekapInfo').textContent = `${dashboardData.kegiatan.length} kegiatan · geser tabel ke samping untuk lihat semua`;
+    const table = $('#matrixTable');
+    table.innerHTML = '';
+
+    if(dashboardData.kegiatan.length === 0){
+      $('.matrix-scroll').innerHTML = '<div class="empty-msg">Belum ada kegiatan. Klik "+ Tambah kegiatan" untuk mulai.</div>';
+      return;
+    }
+
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    headRow.innerHTML = `<th class="col-no">No</th><th class="col-nama">Nama</th>` +
+      dashboardData.kegiatan.map(k => `
+        <th>
+          <span class="keg-nama">${k.nama}</span>
+          <span class="keg-tgl">${k.tanggal}</span>
+          <button class="keg-edit-btn" data-col="${k.col}" title="Edit kegiatan">✎</button>
+        </th>`).join('');
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    $$('.keg-edit-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const k = dashboardData.kegiatan.find(x => String(x.col) === btn.dataset.col);
+        if(k) openEditKegiatan_(k);
+      });
+    });
+
+    const tbody = document.createElement('tbody');
+    dashboardData.divisi.forEach(div=>{
+      const divRow = document.createElement('tr');
+      divRow.className = 'div-row';
+      divRow.innerHTML = `<td colspan="${2 + dashboardData.kegiatan.length}">${div.nama}</td>`;
+      tbody.appendChild(divRow);
+
+      div.anggota.forEach(a=>{
+        const tr = document.createElement('tr');
+        let cells = `<td class="col-no">${a.no}</td><td class="col-nama">${a.nama}</td>`;
+        dashboardData.kegiatan.forEach(k=>{
+          const status = a.kehadiran[k.col] || '';
+          const cls = status ? status.toLowerCase() : 'empty';
+          cells += `<td><span class="cell-status ${cls}" data-row="${a.row}" data-col="${k.col}">${status || '·'}</span></td>`;
+        });
+        tr.innerHTML = cells;
+        tbody.appendChild(tr);
+      });
+    });
+    table.appendChild(tbody);
+
+    $$('.cell-status').forEach(el=> el.addEventListener('click', (e)=> openStatusPopup_(e, el)));
+  }
+
+  function openStatusPopup_(e, el){
+    popupTarget = { row: el.dataset.row, col: el.dataset.col, el };
+    const popup = $('#statusPopup');
+    const rect = el.getBoundingClientRect();
+    popup.style.display = 'flex';
+    popup.style.top = (rect.bottom + 6) + 'px';
+    popup.style.left = Math.min(rect.left, window.innerWidth - 210) + 'px';
+  }
+
+  document.addEventListener('click', (e)=>{
+    const popup = $('#statusPopup');
+    if(popup.style.display === 'none') return;
+    if(e.target.closest('#statusPopup') || (popupTarget && e.target === popupTarget.el)) return;
+    popup.style.display = 'none';
+  });
+
+  $('#statusPopup').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('button[data-status]');
+    if(!btn || !popupTarget) return;
+    const status = btn.dataset.status;
+    $('#statusPopup').style.display = 'none';
+
+    const result = await apiPost({ action:'update_kehadiran', row: popupTarget.row, col: popupTarget.col, status });
+    if(result.ok){ showToast('Kehadiran diperbarui'); await loadData(); }
+    else showToast(result.error, true);
+  });
+
+  // ---- TAMBAH / EDIT / HAPUS KEGIATAN ----
+  let kegiatanEditTarget = null; // { col } saat mode edit, null saat mode tambah
+
+  $('#openTambahKegiatan').addEventListener('click', ()=>{
+    kegiatanEditTarget = null;
+    $('#modalKegiatanTitle').textContent = 'Tambah kegiatan baru';
+    $('#newNamaKegiatan').value = '';
+    $('#newTanggalKegiatan').value = '';
+    $('#deleteKegiatanBtn').style.display = 'none';
+    $('#modalTambahKegiatan').classList.add('show');
+  });
+
+  function openEditKegiatan_(k){
+    kegiatanEditTarget = { col: k.col };
+    $('#modalKegiatanTitle').textContent = 'Edit kegiatan';
+    $('#newNamaKegiatan').value = k.nama;
+    $('#newTanggalKegiatan').value = k.tanggal_iso || '';
+    $('#deleteKegiatanBtn').style.display = 'block';
+    $('#modalTambahKegiatan').classList.add('show');
+  }
+
+  $('#cancelTambahKegiatan').addEventListener('click', ()=> $('#modalTambahKegiatan').classList.remove('show'));
+
+  $('#saveTambahKegiatan').addEventListener('click', async ()=>{
+    const nama = $('#newNamaKegiatan').value.trim();
+    const tanggal = $('#newTanggalKegiatan').value;
+    if(!nama || !tanggal){ showToast('Lengkapi nama & tanggal kegiatan', true); return; }
+
+    const action = kegiatanEditTarget ? 'edit_kegiatan' : 'tambah_kegiatan';
+    const payload = kegiatanEditTarget
+      ? { action, col: kegiatanEditTarget.col, nama_kegiatan: nama, tanggal }
+      : { action, nama_kegiatan: nama, tanggal };
+
+    const result = await apiPost(payload);
+    if(result.ok){
+      showToast(kegiatanEditTarget ? 'Kegiatan diperbarui' : 'Kegiatan baru ditambahkan');
+      $('#modalTambahKegiatan').classList.remove('show');
+      await loadData();
+    } else showToast(result.error, true);
+  });
+
+  $('#deleteKegiatanBtn').addEventListener('click', async ()=>{
+    if(!kegiatanEditTarget) return;
+    const yakin = confirm('Hapus kegiatan ini beserta semua data kehadirannya? Tindakan ini tidak bisa dibatalkan.');
+    if(!yakin) return;
+
+    const result = await apiPost({ action:'hapus_kegiatan', col: kegiatanEditTarget.col });
+    if(result.ok){
+      showToast('Kegiatan dihapus');
+      $('#modalTambahKegiatan').classList.remove('show');
+      await loadData();
+    } else showToast(result.error, true);
+  });
+
+  // ---- ANGGOTA TAB ----
   function renderAnggota(){
-    const totalAnggota = data.divisiGroups.reduce((n,g)=> n + g.anggota.length, 0);
-    $('#anggotaInfo').textContent = `${totalAnggota} anggota di periode ${currentPeriode} · ${data.bulanList.length} kolom bulan`;
-    $('#divisiOptions').innerHTML = data.divisiGroups.map(g => `<option value="${esc(g.divisi)}">`).join('');
+    const totalAnggota = dashboardData.divisi.reduce((n,d)=> n + d.anggota.length, 0);
+    $('#anggotaInfo').textContent = `${totalAnggota} anggota di periode ${currentPeriode}`;
+
+    // isi datalist divisi utk modal tambah/edit
+    $('#divisiOptions').innerHTML = dashboardData.divisi.map(d => `<option value="${d.nama}">`).join('');
 
     const wrap = $('#anggotaList');
     wrap.innerHTML = '';
     if(totalAnggota === 0){ wrap.innerHTML = '<div class="empty-msg">Belum ada anggota di periode ini.</div>'; return; }
 
-    data.divisiGroups.forEach(g=>{
-      if(g.anggota.length === 0) return;
+    dashboardData.divisi.forEach(div=>{
+      if(div.anggota.length === 0) return;
       const title = document.createElement('div');
       title.className = 'div-title';
-      title.textContent = g.divisi;
+      title.textContent = div.nama;
       wrap.appendChild(title);
 
-      g.anggota.forEach(a=>{
+      div.anggota.forEach(a=>{
         const row = document.createElement('div');
         row.className = 'anggota-row';
-        const chips = data.bulanList.map(b=>{
-          const j = a.jatah[b] || { terpakai:0, batas:10 };
-          const sisa = j.batas - j.terpakai;
-          return `<span class="quota-chip ${quotaClass(sisa)}" title="Terpakai ${j.terpakai}/${j.batas}">${sisa}<span class="b">${esc(b.slice(0,3))}</span></span>`;
-        }).join('');
         row.innerHTML = `
-          <span class="nama">${a.no}. ${esc(a.nama)}</span>
-          <span class="quota-chips">${chips}</span>
+          <span class="nama">${a.no}. ${a.nama}</span>
           <button class="icon-btn edit" title="Edit">✎</button>
           <button class="icon-btn del" title="Hapus">🗑</button>
         `;
-        row.querySelector('.edit').addEventListener('click', ()=> openEditAnggota(a.nama, g.divisi));
-        row.querySelector('.del').addEventListener('click', ()=> openHapusAnggota(a.nama));
+        row.querySelector('.edit').addEventListener('click', ()=> openEditAnggota_(a, div.nama));
+        row.querySelector('.del').addEventListener('click', ()=> openHapusAnggota_(a));
         wrap.appendChild(row);
       });
     });
@@ -548,217 +937,46 @@
     $('#anggotaDivisi').value = '';
     $('#modalAnggota').classList.add('show');
   });
-  function openEditAnggota(nama, divisi){
-    editAnggotaTarget = { nama };
+
+  function openEditAnggota_(anggota, divisiNama){
+    editAnggotaTarget = { row: anggota.row };
     $('#modalAnggotaTitle').textContent = 'Edit anggota';
-    $('#anggotaNama').value = nama;
-    $('#anggotaDivisi').value = divisi;
+    $('#anggotaNama').value = anggota.nama;
+    $('#anggotaDivisi').value = divisiNama;
     $('#modalAnggota').classList.add('show');
   }
+
   $('#cancelAnggota').addEventListener('click', ()=> $('#modalAnggota').classList.remove('show'));
   $('#saveAnggota').addEventListener('click', async ()=>{
     const nama = $('#anggotaNama').value.trim();
     const divisi = $('#anggotaDivisi').value.trim();
-    if(!nama || !divisi){ showToast('Nama dan divisi wajib diisi', 'err'); return; }
-    try{
-      let d;
-      if(editAnggotaTarget){
-        d = await api('editMember', { periode: currentPeriode, nama: editAnggotaTarget.nama, namaBaru: nama, divisiBaru: divisi });
-      } else {
-        d = await api('addMember', { periode: currentPeriode, divisi, nama });
-      }
-      $('#modalAnggota').classList.remove('show');
+    if(!nama){ showToast('Nama wajib diisi', true); return; }
+
+    const action = editAnggotaTarget ? 'edit_anggota' : 'tambah_anggota';
+    const payload = editAnggotaTarget
+      ? { action, row: editAnggotaTarget.row, nama, divisi }
+      : { action, nama, divisi };
+
+    const result = await apiPost(payload);
+    if(result.ok){
       showToast(editAnggotaTarget ? 'Anggota diperbarui' : 'Anggota ditambahkan');
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
+      $('#modalAnggota').classList.remove('show');
+      await loadData();
+    } else showToast(result.error, true);
   });
 
-  function openHapusAnggota(nama){
-    hapusAnggotaTarget = { nama };
-    $('#hapusAnggotaNama').textContent = nama;
+  function openHapusAnggota_(anggota){
+    hapusAnggotaTarget = { row: anggota.row, nama: anggota.nama };
+    $('#hapusAnggotaNama').textContent = anggota.nama;
     $('#modalHapusAnggota').classList.add('show');
   }
   $('#cancelHapusAnggota').addEventListener('click', ()=> $('#modalHapusAnggota').classList.remove('show'));
   $('#confirmHapusAnggota').addEventListener('click', async ()=>{
     if(!hapusAnggotaTarget) return;
-    try{
-      const d = await api('deleteMember', { periode: currentPeriode, nama: hapusAnggotaTarget.nama });
-      $('#modalHapusAnggota').classList.remove('show');
-      showToast('Anggota dihapus');
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
-  });
-
-  $('#openTambahBulan').addEventListener('click', ()=>{
-    $('#newNamaBulan').value = '';
-    $('#modalTambahBulan').classList.add('show');
-  });
-  $('#cancelTambahBulan').addEventListener('click', ()=> $('#modalTambahBulan').classList.remove('show'));
-  $('#saveTambahBulan').addEventListener('click', async ()=>{
-    const namaBulan = $('#newNamaBulan').value.trim();
-    if(!namaBulan){ showToast('Nama bulan wajib diisi', 'err'); return; }
-    try{
-      const d = await api('addBulan', { periode: currentPeriode, namaBulan });
-      $('#modalTambahBulan').classList.remove('show');
-      showToast(`Kolom bulan "${namaBulan}" ditambahkan`);
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
-  });
-
-  // ---- TAB: PEMAKAIAN ----
-  function renderPemakaian(){
-    const wrap = $('#pemakaianKategoriList');
-    wrap.innerHTML = data.pemakaianKategori.map(k => `
-      <div class="bar-row"><span class="bar-name">${esc(k.kategori)}</span><span class="bar-val">${k.pemakaian} lembar</span></div>
-    `).join('') || '<div class="empty-msg">Belum ada data.</div>';
-  }
-
-  $('#openPemakaianAnggota').addEventListener('click', ()=>{
-    const allMembers = [];
-    data.divisiGroups.forEach(g => g.anggota.forEach(a => allMembers.push(a.nama)));
-    $('#pmkAnggotaNama').innerHTML = allMembers.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
-    $('#pmkAnggotaBulan').innerHTML = data.bulanList.map(b => `<option value="${b}">${b}</option>`).join('');
-    $('#pmkAnggotaJumlah').value = '';
-    $('#modalPemakaianAnggota').classList.add('show');
-  });
-  $('#cancelPemakaianAnggota').addEventListener('click', ()=> $('#modalPemakaianAnggota').classList.remove('show'));
-  $('#savePemakaianAnggota').addEventListener('click', async ()=>{
-    const nama = $('#pmkAnggotaNama').value;
-    const bulan = $('#pmkAnggotaBulan').value;
-    const jumlah = Number($('#pmkAnggotaJumlah').value);
-    if(!nama || !bulan || !jumlah){ showToast('Lengkapi semua isian', 'err'); return; }
-    try{
-      const res = await api('catatPemakaianAnggota', { periode: currentPeriode, nama, bulan, jumlah });
-      $('#modalPemakaianAnggota').classList.remove('show');
-      if(res.kelebihan > 0){
-        showToast(`${res.gratis} lembar gratis, ${res.kelebihan} lembar kelebihan masuk ke Penjualan`, 'warn');
-      } else {
-        showToast(`${res.gratis} lembar dicatat, masih dalam jatah gratis`);
-      }
-      applyData(res.data);
-    } catch(err){ showToast(err.message, 'err'); }
-  });
-
-  $('#openPemakaianKategori').addEventListener('click', ()=>{
-    $('#pmkKategoriNama').innerHTML = data.pemakaianKategori.map(k => `<option value="${esc(k.kategori)}">${esc(k.kategori)}</option>`).join('');
-    $('#pmkKategoriJumlah').value = '';
-    $('#modalPemakaianKategori').classList.add('show');
-  });
-  $('#cancelPemakaianKategori').addEventListener('click', ()=> $('#modalPemakaianKategori').classList.remove('show'));
-  $('#savePemakaianKategori').addEventListener('click', async ()=>{
-    const kategori = $('#pmkKategoriNama').value;
-    const jumlah = Number($('#pmkKategoriJumlah').value);
-    if(!kategori || !jumlah){ showToast('Lengkapi semua isian', 'err'); return; }
-    try{
-      const d = await api('catatPemakaianKategori', { periode: currentPeriode, kategori, jumlah });
-      $('#modalPemakaianKategori').classList.remove('show');
-      showToast(`${jumlah} lembar dicatat untuk ${kategori}`);
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
-  });
-
-  // ---- TAB: PENJUALAN ----
-  function renderPenjualan(){
-    $('#penjualanInfo').textContent = `${data.penjualan.length} catatan penjualan`;
-    const wrap = $('#penjualanList');
-    wrap.innerHTML = data.penjualan.map(p => `
-      <div class="bar-row">
-        <span class="bar-name">${esc(p.nama)}<span class="bar-sub">${esc(p.tanggal)} · Print ${p.print} · Fotocopy ${p.fotocopy}${p.keterangan ? ' · ' + esc(p.keterangan) : ''}</span></span>
-        <span class="bar-val ${p.totalPemasukan === '' ? 'warn' : ''}">${p.totalPemasukan === '' ? 'belum diisi' : fmtRp(p.totalPemasukan)}</span>
-        <button class="icon-btn edit" title="Edit" data-id="${p.id}">✎</button>
-        <button class="icon-btn del" title="Hapus" data-id="${p.id}">🗑</button>
-      </div>
-    `).join('') || '<div class="empty-msg">Belum ada data penjualan.</div>';
-
-    $$('#penjualanList .icon-btn.edit').forEach(btn=> btn.addEventListener('click', ()=> openEditPenjualan(Number(btn.dataset.id))));
-    $$('#penjualanList .icon-btn.del').forEach(btn=> btn.addEventListener('click', ()=> openHapusPenjualan(Number(btn.dataset.id))));
-  }
-
-  $('#openTambahPenjualan').addEventListener('click', ()=>{
-    editPenjualanTarget = null;
-    $('#modalPenjualanTitle').textContent = 'Tambah pembayaran';
-    $('#pjTanggal').value = new Date().toISOString().slice(0,10);
-    $('#pjNama').value = ''; $('#pjPrint').value = 0; $('#pjFotocopy').value = 0; $('#pjTotal').value = '';
-    $('#modalPenjualan').classList.add('show');
-  });
-  function openEditPenjualan(id){
-    const p = data.penjualan.find(x => x.id === id);
-    if(!p) return;
-    editPenjualanTarget = { id };
-    $('#modalPenjualanTitle').textContent = 'Edit pembayaran';
-    $('#pjTanggal').value = p.tanggal; $('#pjNama').value = p.nama;
-    $('#pjPrint').value = p.print; $('#pjFotocopy').value = p.fotocopy;
-    $('#pjTotal').value = p.totalPemasukan === '' ? '' : p.totalPemasukan;
-    $('#modalPenjualan').classList.add('show');
-  }
-  $('#cancelPenjualan').addEventListener('click', ()=> $('#modalPenjualan').classList.remove('show'));
-  $('#savePenjualan').addEventListener('click', async ()=>{
-    const tanggal = $('#pjTanggal').value;
-    const nama = $('#pjNama').value.trim();
-    const print = $('#pjPrint').value;
-    const fotocopy = $('#pjFotocopy').value;
-    const totalPemasukan = $('#pjTotal').value;
-    if(!nama){ showToast('Nama pembayar wajib diisi', 'err'); return; }
-    try{
-      let d;
-      if(editPenjualanTarget){
-        d = await api('editPenjualan', { periode: currentPeriode, id: editPenjualanTarget.id, tanggal, nama, print, fotocopy, totalPemasukan });
-      } else {
-        const res = await api('addPenjualan', { periode: currentPeriode, tanggal, nama, print, fotocopy, totalPemasukan });
-        d = res.data;
-      }
-      $('#modalPenjualan').classList.remove('show');
-      showToast('Pembayaran disimpan');
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
-  });
-
-  function openHapusPenjualan(id){
-    const p = data.penjualan.find(x => x.id === id);
-    hapusPenjualanTarget = { id };
-    $('#hapusPenjualanNama').textContent = p ? `${p.nama} · ${p.tanggal}` : '';
-    $('#modalHapusPenjualan').classList.add('show');
-  }
-  $('#cancelHapusPenjualan').addEventListener('click', ()=> $('#modalHapusPenjualan').classList.remove('show'));
-  $('#confirmHapusPenjualan').addEventListener('click', async ()=>{
-    if(!hapusPenjualanTarget) return;
-    try{
-      const d = await api('deletePenjualan', { periode: currentPeriode, id: hapusPenjualanTarget.id });
-      $('#modalHapusPenjualan').classList.remove('show');
-      showToast('Data penjualan dihapus');
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
-  });
-
-  // ---- TAB: KERTAS ----
-  function renderKertas(){
-    const wrap = $('#kertasList');
-    wrap.innerHTML = data.pengisianKertas.map(k => `
-      <div class="bar-row">
-        <span class="bar-name">${esc(k.tanggal)}<span class="bar-sub">${esc(k.keterangan || '')}</span></span>
-        <span class="bar-val" style="color:var(--teal);">+${k.jumlah}</span>
-      </div>
-    `).join('') || '<div class="empty-msg">Belum ada riwayat isi ulang.</div>';
-  }
-
-  $('#openTambahKertas').addEventListener('click', ()=>{
-    $('#kertasTanggal').value = new Date().toISOString().slice(0,10);
-    $('#kertasJumlah').value = '';
-    $('#kertasKeterangan').value = '';
-    $('#modalKertas').classList.add('show');
-  });
-  $('#cancelKertas').addEventListener('click', ()=> $('#modalKertas').classList.remove('show'));
-  $('#saveKertas').addEventListener('click', async ()=>{
-    const tanggal = $('#kertasTanggal').value;
-    const jumlah = Number($('#kertasJumlah').value);
-    const keterangan = $('#kertasKeterangan').value.trim();
-    if(!jumlah){ showToast('Isi jumlah kertas', 'err'); return; }
-    try{
-      const d = await api('addPengisianKertas', { periode: currentPeriode, tanggal, jumlah, keterangan });
-      $('#modalKertas').classList.remove('show');
-      showToast(`${jumlah} lembar kertas ditambahkan ke stok`);
-      applyData(d);
-    } catch(err){ showToast(err.message, 'err'); }
+    const result = await apiPost({ action:'hapus_anggota', row: hapusAnggotaTarget.row });
+    $('#modalHapusAnggota').classList.remove('show');
+    if(result.ok){ showToast('Anggota dihapus'); await loadData(); }
+    else showToast(result.error, true);
   });
 </script>
 </body>
