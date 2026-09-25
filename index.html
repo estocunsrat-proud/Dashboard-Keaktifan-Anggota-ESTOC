@@ -160,11 +160,13 @@
     padding:11px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
   }
   .anggota-row .nama{ font-weight:600; flex:1; min-width:0; }
+  .anggota-row .nama .nama-sub{ display:block; color:var(--text-lo); font-weight:400; font-size:11px; margin-top:2px; }
   .icon-btn{
     background:transparent; border:1px solid var(--line); color:var(--text-lo); border-radius:7px;
     width:32px; height:32px; cursor:pointer; font-size:14px; flex:0 0 auto;
   }
   .icon-btn.edit:hover{ border-color:var(--gold); color:var(--gold); }
+  .icon-btn.tutup:hover{ border-color:var(--amber); color:var(--amber); }
   .icon-btn.del:hover{ border-color:var(--rust); color:var(--rust); }
 
   /* ---- modal umum ---- */
@@ -183,6 +185,7 @@
   .modal-actions .cancel{ background:transparent; color:var(--text-lo); }
   .modal-actions .save{ background:var(--gold); color:#1A1204; border:none; }
   .modal-actions .danger{ background:var(--rust); color:#2A0906; border:none; }
+  .modal-actions .warn{ background:var(--amber); color:#2A1B02; border:none; }
 
   .empty-msg{ color:var(--text-lo); font-size:13.5px; padding:20px 0; text-align:center; }
   .toast{
@@ -238,7 +241,7 @@
     <div id="memberEmptyMsg"></div>
     <div id="memberContent" style="display:none;">
       <div class="stat-cards" id="memberStatCards"></div>
-      <div class="div-title" style="margin-top:22px;">Keaktifan per Divisi</div>
+      <div class="div-title" id="memberDivisiTitle" style="margin-top:22px;">Keaktifan per Divisi</div>
       <div id="memberDivisiList"></div>
       <div class="div-title">Ranking Anggota</div>
       <div id="memberRankingList"></div>
@@ -269,13 +272,13 @@
       <button class="tab-btn" data-tab="anggota" id="tabAnggotaBtn" style="display:none;">Anggota</button>
     </div>
 
-    <!-- TAB: IKHTISAR -->
+    <!-- TAB: IKHTISAR (khusus kegiatan divisi sendiri) -->
     <div class="panel active" id="panel-ikhtisar">
       <div class="toolbar"><span class="info" id="ikhtisarInfo"></span></div>
       <div id="ikhtisarEmptyMsg"></div>
       <div id="ikhtisarContent" style="display:none;">
         <div class="stat-cards" id="ikhtisarStatCards"></div>
-        <div class="div-title" style="margin-top:22px;">Keaktifan per Divisi</div>
+        <div class="div-title" id="ikhtisarDivisiTitle" style="margin-top:22px;">Keaktifan per Divisi</div>
         <div id="ikhtisarDivisiList"></div>
         <div class="div-title" style="display:flex; align-items:center; justify-content:space-between;">
           <span>Ranking Anggota</span>
@@ -310,7 +313,7 @@
   <div class="modal-bg" id="modalPeriodeBaru">
     <div class="modal">
       <h3>Periode baru</h3>
-      <p class="sub">Roster & sheet tiap divisi disalin dari periode yang sedang dipilih, tanpa data kegiatan/kehadiran.</p>
+      <p class="sub">Roster & sheet tiap divisi disalin dari periode yang sedang dipilih (anggota Non-Aktif/lulus tidak ikut dibawa), tanpa data kegiatan/kehadiran.</p>
       <label>Nama periode</label>
       <input type="text" id="newNamaPeriode" placeholder="mis. 2027">
       <div class="modal-actions">
@@ -352,12 +355,25 @@
     </div>
   </div>
 
+  <!-- modal: konfirmasi tutup anggota (lulus) -->
+  <div class="modal-bg" id="modalTutupAnggota">
+    <div class="modal">
+      <h3>Tutup anggota?</h3>
+      <p class="sub" id="tutupAnggotaNama"></p>
+      <p class="sub">Anggota akan dipindahkan ke grup "Non-Aktif (Sudah Lulus)" di semua sheet. Histori kehadirannya tetap tersimpan & tetap terhitung di ikhtisar, tapi tidak lagi dianggap anggota aktif divisi manapun. Anggota yang sudah non-aktif tidak ikut dibawa saat bikin periode baru.</p>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelTutupAnggota">Batal</button>
+        <button class="warn" id="confirmTutupAnggota">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- modal: konfirmasi hapus anggota -->
   <div class="modal-bg" id="modalHapusAnggota">
     <div class="modal">
       <h3>Hapus anggota?</h3>
       <p class="sub" id="hapusAnggotaNama"></p>
-      <p class="sub">Ini hanya menghapus anggota dari roster & sheet divisinya di periode yang sedang dipilih.</p>
+      <p class="sub">Ini menghapus anggota secara PERMANEN dari roster BOD dan semua sheet divisi di periode yang sedang dipilih, termasuk histori kehadirannya. Kalau anggota sudah lulus dan datanya masih mau disimpan, pakai "Tutup" saja, bukan "Hapus".</p>
       <div class="modal-actions">
         <button class="cancel" id="cancelHapusAnggota">Batal</button>
         <button class="danger" id="confirmHapusAnggota">Hapus</button>
@@ -387,7 +403,8 @@
   <div class="toast" id="toast"></div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbw8hMZ4fq2UUL_ze1rpDNJRTyxIQtSzd8w24GredE2pH1tBLjyysVImceKVONuqC9Ak/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwFRa2jraS9NpYcjmy_0PV2i03x6vZ24KKQPy0oecm7h0z-GI3RbT9rolqzGReY-Z9j/exec";
+  const NONAKTIF_LABEL = 'Non-Aktif (Sudah Lulus)';
 
   let adminPassword = '';
   let adminDivisi = null;
@@ -398,6 +415,7 @@
   let popupTarget = null;
   let editAnggotaTarget = null;
   let hapusAnggotaTarget = null;
+  let tutupAnggotaTarget = null;
   let kegiatanEditTarget = null;
   let memberPeriodeList = [];
   let memberCurrentPeriode = null;
@@ -405,6 +423,7 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
   const isBodNama = (nama) => ['bod','board of director'].includes(String(nama||'').trim().toLowerCase());
+  const isNonaktifNama = (nama) => String(nama||'').trim() === NONAKTIF_LABEL;
 
   function showToast(msg, isErr){
     const t = $('#toast');
@@ -431,7 +450,7 @@
     });
     return res.json();
   }
-  // dipakai member & Ikhtisar — TANPA password sama sekali
+  // dipakai member (ikhtisar gabungan) & dropdown login — TANPA password sama sekali
   async function apiGetPublic(action, extraParams){
     const params = new URLSearchParams({ action, ...extraParams });
     const res = await fetch(`${API_URL}?${params.toString()}`);
@@ -551,14 +570,53 @@
     const result = await apiGet('admin_data', { periode: currentPeriode });
     if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
     dashboardData = result.data;
-    await loadIkhtisar_('ikhtisar', currentPeriode);
+    // Ikhtisar di halaman admin HANYA kegiatan divisi sendiri (dihitung lokal
+    // dari admin_data), BUKAN gabungan semua divisi -- itu cuma di sisi Anggota.
+    renderIkhtisar_('ikhtisar', buildIkhtisarLokal_(dashboardData), {
+      showDivisiBreakdown: false,
+      scopeLabel: `divisi ${adminDivisi}`
+    });
     renderRankingDetail_();
     renderMatrix();
     if(isBod) renderAnggota();
   }
 
+  /* Bentuk ulang admin_data (kegiatan + divisi milik 1 sheet) jadi bentuk yang
+   * sama seperti ikhtisar gabungan (public_data), tapi cuma lingkup sheet ini
+   * sendiri -- dipakai tab "Ikhtisar" di halaman admin. */
+  function buildIkhtisarLokal_(data){
+    let totH = 0, totA = 0, totI = 0, totB = 0, totalAnggota = 0;
+    data.divisi.forEach(d => d.anggota.forEach(a=>{
+      totH += a.stats.H; totA += a.stats.A; totI += a.stats.I; totB += a.stats.B;
+      totalAnggota++;
+    }));
+    const totalTertandai = totH + totA + totI;
+
+    const perKegiatan = data.kegiatan.map(k=>{
+      let h=0, a=0, i=0, b=0;
+      data.divisi.forEach(d => d.anggota.forEach(ang=>{
+        const st = ang.kehadiran[k.col] || '';
+        if(st==='H') h++; else if(st==='A') a++; else if(st==='I') i++; else if(st==='B') b++;
+      }));
+      const total = h+a+i;
+      return { nama: k.nama, tanggal: k.tanggal, H:h, A:a, I:i, B:b,
+        persen_hadir: total>0 ? Math.round((h/total)*1000)/10 : null };
+    });
+
+    return {
+      total_kegiatan: data.kegiatan.length,
+      total_anggota: totalAnggota,
+      keseluruhan: { H: totH, A: totA, I: totI, B: totB,
+        persen_hadir: totalTertandai>0 ? Math.round((totH/totalTertandai)*1000)/10 : null },
+      per_kegiatan: perKegiatan,
+      per_divisi: [], // tidak relevan -- lingkupnya cuma 1 divisi (punya admin ini)
+      divisi: data.divisi
+    };
+  }
+
   /* ===========================================================
-   * IKHTISAR (gabungan semua divisi) — dipakai member & tab admin
+   * IKHTISAR — dipakai tab "Ikhtisar" admin (lokal, 1 sheet) MAUPUN
+   * layar "Anggota" publik (gabungan semua divisi, lewat public_data)
    * =========================================================== */
   async function loadIkhtisar_(prefix, periode){
     const result = await apiGetPublic('public_data', { periode });
@@ -566,8 +624,12 @@
     renderIkhtisar_(prefix, result.data);
   }
 
-  function renderIkhtisar_(prefix, data){
-    $(`#${prefix}Info`).textContent = `${data.total_anggota} anggota · ${data.total_kegiatan} kegiatan tercatat (semua divisi)`;
+  function renderIkhtisar_(prefix, data, opts){
+    opts = opts || {};
+    const showDivisiBreakdown = opts.showDivisiBreakdown !== false;
+    const scopeLabel = opts.scopeLabel || 'semua divisi';
+
+    $(`#${prefix}Info`).textContent = `${data.total_anggota} anggota · ${data.total_kegiatan} kegiatan tercatat (${scopeLabel})`;
 
     if(data.total_kegiatan === 0 || data.total_anggota === 0){
       $(`#${prefix}Content`).style.display = 'none';
@@ -578,7 +640,18 @@
     $(`#${prefix}Content`).style.display = 'block';
 
     renderStatCards_(prefix, data);
-    renderDivisiBars_(prefix, data.per_divisi);
+
+    const divisiTitleEl = document.getElementById(`${prefix}DivisiTitle`);
+    if(showDivisiBreakdown){
+      if(divisiTitleEl) divisiTitleEl.style.display = '';
+      $(`#${prefix}DivisiList`).style.display = '';
+      renderDivisiBars_(prefix, data.per_divisi);
+    } else {
+      if(divisiTitleEl) divisiTitleEl.style.display = 'none';
+      $(`#${prefix}DivisiList`).style.display = 'none';
+      $(`#${prefix}DivisiList`).innerHTML = '';
+    }
+
     renderIkhtisarRanking_(prefix, data.divisi);
     renderKegiatanTrend_(prefix, data.per_kegiatan);
   }
@@ -672,7 +745,7 @@
     });
   }
 
-  // ---- MEMBER (public) ----
+  // ---- MEMBER (public, ikhtisar GABUNGAN semua divisi) ----
   async function loadMemberPeriodeList(){
     const result = await apiGetPublic('list_periode_public');
     if(!result.ok){ showToast(result.error || 'Gagal memuat periode', true); return; }
@@ -687,7 +760,7 @@
     await loadIkhtisar_('member', memberCurrentPeriode);
   });
 
-  // ---- MODAL: DETAIL RANKING ANGGOTA (dari tab Ikhtisar admin) ----
+  // ---- MODAL: DETAIL RANKING ANGGOTA (dari tab Ikhtisar admin, lingkup divisi sendiri) ----
   $('#openRankingDetail').addEventListener('click', ()=>{
     renderRankingDetail_();
     $('#modalRankingDetail').classList.add('show');
@@ -871,7 +944,7 @@
     $('#anggotaInfo').textContent = `${totalAnggota} anggota · roster BOD, periode ${currentPeriode}`;
 
     $('#divisiOptions').innerHTML = dashboardData.divisi
-      .filter(d => !isBodNama(d.nama))
+      .filter(d => !isBodNama(d.nama) && !isNonaktifNama(d.nama))
       .map(d => `<option value="${d.nama}">`).join('');
 
     const wrap = $('#anggotaList');
@@ -885,15 +958,20 @@
       title.textContent = div.nama;
       wrap.appendChild(title);
 
+      const nonaktifGrup = isNonaktifNama(div.nama);
+
       div.anggota.forEach(a=>{
         const row = document.createElement('div');
         row.className = 'anggota-row';
         row.innerHTML = `
           <span class="nama">${a.no}. ${a.nama}</span>
           <button class="icon-btn edit" title="Edit">✎</button>
-          <button class="icon-btn del" title="Hapus">🗑</button>
+          ${nonaktifGrup ? '' : '<button class="icon-btn tutup" title="Tutup (lulus)">🎓</button>'}
+          <button class="icon-btn del" title="Hapus permanen">🗑</button>
         `;
         row.querySelector('.edit').addEventListener('click', ()=> openEditAnggota_(a, div.nama));
+        const tutupBtn = row.querySelector('.tutup');
+        if(tutupBtn) tutupBtn.addEventListener('click', ()=> openTutupAnggota_(a));
         row.querySelector('.del').addEventListener('click', ()=> openHapusAnggota_(a));
         wrap.appendChild(row);
       });
@@ -935,6 +1013,22 @@
     } else showToast(result.error, true);
   });
 
+  // ---- TUTUP ANGGOTA (lulus, BOD saja) ----
+  function openTutupAnggota_(anggota){
+    tutupAnggotaTarget = { row: anggota.row, nama: anggota.nama };
+    $('#tutupAnggotaNama').textContent = anggota.nama;
+    $('#modalTutupAnggota').classList.add('show');
+  }
+  $('#cancelTutupAnggota').addEventListener('click', ()=> $('#modalTutupAnggota').classList.remove('show'));
+  $('#confirmTutupAnggota').addEventListener('click', async ()=>{
+    if(!tutupAnggotaTarget) return;
+    const result = await apiPost({ action:'tutup_anggota', row: tutupAnggotaTarget.row });
+    $('#modalTutupAnggota').classList.remove('show');
+    if(result.ok){ showToast('Anggota ditutup (non-aktif)'); await loadData(); }
+    else showToast(result.error, true);
+  });
+
+  // ---- HAPUS ANGGOTA (permanen, BOD saja) ----
   function openHapusAnggota_(anggota){
     hapusAnggotaTarget = { row: anggota.row, nama: anggota.nama };
     $('#hapusAnggotaNama').textContent = anggota.nama;
