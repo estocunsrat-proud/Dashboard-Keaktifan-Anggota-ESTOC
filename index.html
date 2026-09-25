@@ -66,6 +66,13 @@
     background:var(--navy-panel); border:1px solid var(--line); color:var(--text-hi);
     border-radius:8px; padding:8px 10px; font-size:13.5px; font-family:'Inter',sans-serif;
   }
+  /* Di desktop (Chrome/Edge/Firefox), daftar pilihan <select> dirender browser
+   * dengan latar putih bawaan walau warna teksnya ikut tema gelap kita --
+   * bikin teks terang di atas latar putih jadi tidak kebaca / "hilang".
+   * Aturan ini memaksa <option> ikut tema gelap juga di semua <select>. */
+  select option{
+    background:var(--navy-panel); color:var(--text-hi);
+  }
   .btn-ghost{
     background:transparent; border:1px solid var(--line); color:var(--gold); border-radius:8px;
     padding:8px 12px; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:600;
@@ -417,7 +424,7 @@
   <div class="toast" id="toast"></div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbw8hMZ4fq2UUL_ze1rpDNJRTyxIQtSzd8w24GredE2pH1tBLjyysVImceKVONuqC9Ak/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwFRa2jraS9NpYcjmy_0PV2i03x6vZ24KKQPy0oecm7h0z-GI3RbT9rolqzGReY-Z9j/exec";
   const NONAKTIF_LABEL = 'Non-Aktif (Sudah Lulus)';
 
   let adminPassword = '';
