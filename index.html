@@ -20,21 +20,20 @@
   }
   h1,h2,h3{ font-family:'Oswald',sans-serif; margin:0; }
 
-  /* ---- LOGIN ---- */
-  #loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-  #roleScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  /* ---- LOGIN / ROLE ---- */
+  #roleScreen, #loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
   .login-box{
     background:var(--navy-panel); border:1px solid var(--line); border-radius:14px;
-    padding:32px 28px; width:100%; max-width:340px; text-align:center;
+    padding:32px 28px; width:100%; max-width:360px; text-align:center;
   }
   .login-box p.kicker{ color:var(--gold); font-size:12.5px; letter-spacing:.05em; margin:0 0 6px; }
-  .login-box h2{ font-size:22px; margin-bottom:18px; }
   .login-box p.sub{ color:var(--text-lo); font-size:12.5px; }
-  .login-box input{
+  .login-box h2{ font-size:22px; margin-bottom:18px; }
+  .login-box input, .login-box select{
     width:100%; background:var(--navy-deep); border:1px solid var(--line); border-radius:8px;
     padding:11px 12px; color:var(--text-hi); font-size:14.5px; margin-bottom:12px; font-family:'Inter',sans-serif;
   }
-  .login-box input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .login-box input:focus, .login-box select:focus{ outline:2px solid var(--gold); outline-offset:1px; }
   .login-box button{
     width:100%; background:var(--gold); color:#1A1204; border:none; border-radius:9px;
     padding:12px; font-family:'Oswald',sans-serif; font-weight:600; font-size:14.5px; cursor:pointer;
@@ -42,7 +41,7 @@
   .login-err{ color:var(--rust); font-size:13px; margin-top:10px; min-height:16px; }
 
   /* ---- APP SHELL ---- */
-  #app{ display:none; max-width:1080px; margin:0 auto; padding:20px 16px 60px; }
+  #app, #memberScreen{ display:none; max-width:1080px; margin:0 auto; padding:20px 16px 60px; }
   .topbar{
     display:flex; justify-content:space-between; align-items:flex-start;
     padding-bottom:16px; border-bottom:1px solid var(--line); margin-bottom:14px; gap:10px; flex-wrap:wrap;
@@ -79,7 +78,7 @@
     padding:10px 16px; font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; white-space:nowrap;
   }
 
-  /* ---- RANKING TAB ---- */
+  /* ---- RANKING & ikhtisar ---- */
   .div-title{ color:var(--gold); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; margin:20px 0 8px; }
   .div-title:first-child{ margin-top:0; }
   .rank-row{
@@ -95,7 +94,6 @@
   .rank-pct{ font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; width:52px; text-align:right; flex:0 0 auto; }
   .rank-detail{ color:var(--text-lo); font-size:11.5px; flex:0 0 auto; white-space:nowrap; }
 
-  /* ---- MEMBER: ringkasan & analisa lain ---- */
   .stat-cards{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
   .stat-card{
     background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
@@ -115,6 +113,8 @@
   .bar-row .bar-fill{ height:100%; background:var(--teal); border-radius:99px; }
   .bar-row .bar-pct{ font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; width:46px; text-align:right; flex:0 0 auto; }
   .bar-row .bar-pct.na{ color:var(--text-lo); font-family:'Inter',sans-serif; font-weight:400; font-size:11px; }
+
+  /* ---- MATRIX TAB ---- */
   .matrix-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
   table.matrix{ border-collapse:collapse; font-size:12.5px; white-space:nowrap; }
   table.matrix th, table.matrix td{ padding:8px 10px; border-bottom:1px solid var(--line); text-align:center; }
@@ -140,7 +140,6 @@
   .cell-status.b{ background:rgba(124,147,172,.16); color:var(--grey); border-color:rgba(124,147,172,.4); }
   .cell-status.empty{ color:var(--text-lo); }
 
-  /* ---- popup pilih status ---- */
   .status-popup{
     position:fixed; background:var(--navy-panel-2); border:1px solid var(--gold); border-radius:10px;
     padding:8px; display:flex; gap:6px; z-index:80; box-shadow:0 8px 24px rgba(0,0,0,.4);
@@ -155,7 +154,7 @@
   .status-popup button.b{ color:var(--grey); }
   .status-popup button.clear{ color:var(--text-lo); font-size:16px; }
 
-  /* ---- ANGGOTA TAB ---- */
+  /* ---- ANGGOTA TAB (BOD) ---- */
   .anggota-row{
     background:var(--navy-panel); border:1px solid var(--line); border-radius:10px;
     padding:11px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
@@ -213,6 +212,8 @@
     <div class="login-box">
       <p class="kicker">KSPM ESTOC UNSRAT</p>
       <h2>Login Admin</h2>
+      <label style="display:block; text-align:left; font-size:12px; color:var(--text-lo); margin-bottom:5px;">Divisi</label>
+      <select id="loginDivisi"></select>
       <input type="password" id="passwordInput" placeholder="Password admin">
       <button id="loginBtn">Masuk</button>
       <div class="login-err" id="loginErr"></div>
@@ -220,8 +221,8 @@
     </div>
   </div>
 
-  <!-- ============== MEMBER (read-only) ============== -->
-  <div id="memberScreen" style="display:none; max-width:680px; margin:0 auto; padding:20px 16px 60px;">
+  <!-- ============== MEMBER (read-only, gabungan semua divisi) ============== -->
+  <div id="memberScreen" style="max-width:680px;">
     <div class="topbar">
       <div>
         <p class="kicker">KSPM ESTOC UNSRAT</p>
@@ -234,18 +235,13 @@
       <select id="memberPeriodeSelect"></select>
     </div>
     <div class="toolbar"><span class="info" id="memberInfo"></span></div>
-
     <div id="memberEmptyMsg"></div>
-
     <div id="memberContent" style="display:none;">
       <div class="stat-cards" id="memberStatCards"></div>
-
       <div class="div-title" style="margin-top:22px;">Keaktifan per Divisi</div>
       <div id="memberDivisiList"></div>
-
       <div class="div-title">Ranking Anggota</div>
       <div id="memberRankingList"></div>
-
       <div class="div-title">Tren per Kegiatan</div>
       <div id="memberKegiatanTrend"></div>
     </div>
@@ -256,7 +252,7 @@
     <div class="topbar">
       <div>
         <p class="kicker">KSPM ESTOC UNSRAT</p>
-        <h1>Dashboard Keaktifan Anggota</h1>
+        <h1 id="appTitle">Dashboard Keaktifan Anggota</h1>
       </div>
       <button class="logout" id="logoutBtn">Keluar</button>
     </div>
@@ -264,13 +260,13 @@
     <div class="periode-bar">
       <label>Periode</label>
       <select id="periodeSelect"></select>
-      <button class="btn-ghost" id="openPeriodeBaru">+ Periode baru</button>
+      <button class="btn-ghost" id="openPeriodeBaru" style="display:none;">+ Periode baru</button>
     </div>
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="ikhtisar">Ikhtisar</button>
       <button class="tab-btn" data-tab="rekap">Rekap Kehadiran</button>
-      <button class="tab-btn" data-tab="anggota">Anggota</button>
+      <button class="tab-btn" data-tab="anggota" id="tabAnggotaBtn" style="display:none;">Anggota</button>
     </div>
 
     <!-- TAB: IKHTISAR -->
@@ -291,7 +287,7 @@
       </div>
     </div>
 
-    <!-- TAB: REKAP / MATRIX -->
+    <!-- TAB: REKAP / MATRIX (kegiatan divisi yang sedang login) -->
     <div class="panel" id="panel-rekap">
       <div class="toolbar">
         <span class="info" id="rekapInfo"></span>
@@ -300,7 +296,7 @@
       <div class="matrix-scroll"><table class="matrix" id="matrixTable"></table></div>
     </div>
 
-    <!-- TAB: ANGGOTA -->
+    <!-- TAB: ANGGOTA (BOD saja) -->
     <div class="panel" id="panel-anggota">
       <div class="toolbar">
         <span class="info" id="anggotaInfo"></span>
@@ -310,11 +306,11 @@
     </div>
   </div>
 
-  <!-- modal: periode baru -->
+  <!-- modal: periode baru (BOD) -->
   <div class="modal-bg" id="modalPeriodeBaru">
     <div class="modal">
       <h3>Periode baru</h3>
-      <p class="sub">Daftar anggota disalin dari periode yang sedang dipilih, tanpa data kegiatan/kehadiran.</p>
+      <p class="sub">Roster & sheet tiap divisi disalin dari periode yang sedang dipilih, tanpa data kegiatan/kehadiran.</p>
       <label>Nama periode</label>
       <input type="text" id="newNamaPeriode" placeholder="mis. 2027">
       <div class="modal-actions">
@@ -324,12 +320,12 @@
     </div>
   </div>
 
-  <!-- modal: tambah kegiatan -->
+  <!-- modal: tambah/edit kegiatan -->
   <div class="modal-bg" id="modalTambahKegiatan">
     <div class="modal">
       <h3 id="modalKegiatanTitle">Tambah kegiatan baru</h3>
       <label>Nama kegiatan</label>
-      <input type="text" id="newNamaKegiatan" placeholder="mis. Rapat Umum, Bakti Sosial, dll">
+      <input type="text" id="newNamaKegiatan" placeholder="mis. Rapat Umum, Pelatihan, dll">
       <label>Tanggal kegiatan</label>
       <input type="date" id="newTanggalKegiatan">
       <div class="modal-actions">
@@ -340,7 +336,7 @@
     </div>
   </div>
 
-  <!-- modal: tambah/edit anggota -->
+  <!-- modal: tambah/edit anggota (BOD) -->
   <div class="modal-bg" id="modalAnggota">
     <div class="modal">
       <h3 id="modalAnggotaTitle">Tambah anggota</h3>
@@ -361,7 +357,7 @@
     <div class="modal">
       <h3>Hapus anggota?</h3>
       <p class="sub" id="hapusAnggotaNama"></p>
-      <p class="sub">Ini hanya menghapus anggota dari periode yang sedang dipilih. Periode lain tidak terpengaruh.</p>
+      <p class="sub">Ini hanya menghapus anggota dari roster & sheet divisinya di periode yang sedang dipilih.</p>
       <div class="modal-actions">
         <button class="cancel" id="cancelHapusAnggota">Batal</button>
         <button class="danger" id="confirmHapusAnggota">Hapus</button>
@@ -369,7 +365,7 @@
     </div>
   </div>
 
-  <!-- modal: detail ranking anggota (dari tombol "Detail lengkap" di Ikhtisar) -->
+  <!-- modal: detail ranking anggota -->
   <div class="modal-bg" id="modalRankingDetail">
     <div class="modal" style="max-width:480px;">
       <h3>Detail Ranking Anggota</h3>
@@ -391,21 +387,24 @@
   <div class="toast" id="toast"></div>
 
 <script>
-  // GANTI URL di bawah ini dengan URL Web App hasil deploy Code.gs
-  // (Deploy > Manage deployments > salin "Web app URL"). Lihat README.md.
-  const API_URL = "https://script.google.com/macros/s/AKfycbwFRa2jraS9NpYcjmy_0PV2i03x6vZ24KKQPy0oecm7h0z-GI3RbT9rolqzGReY-Z9j/exec";
+  const API_URL = "PASTE_URL_WEB_APP_DI_SINI";
+
   let adminPassword = '';
+  let adminDivisi = null;
+  let isBod = false;
   let periodeList = [];
   let currentPeriode = null;
   let dashboardData = { kegiatan: [], divisi: [] };
   let popupTarget = null;
-  let editAnggotaTarget = null; // { row } saat mode edit, null saat mode tambah
-  let hapusAnggotaTarget = null; // { row, nama }
+  let editAnggotaTarget = null;
+  let hapusAnggotaTarget = null;
+  let kegiatanEditTarget = null;
   let memberPeriodeList = [];
   let memberCurrentPeriode = null;
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const isBodNama = (nama) => ['bod','board of director'].includes(String(nama||'').trim().toLowerCase());
 
   function showToast(msg, isErr){
     const t = $('#toast');
@@ -415,7 +414,7 @@
   }
 
   async function apiGet(action, extraParams){
-    const params = new URLSearchParams({ action, password: adminPassword, ...extraParams });
+    const params = new URLSearchParams({ action, password: adminPassword, divisi: adminDivisi || '', ...extraParams });
     const res = await fetch(`${API_URL}?${params.toString()}`);
     return res.json();
   }
@@ -423,11 +422,16 @@
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ ...payload, password: adminPassword, periode: payload.periode || currentPeriode })
+      body: JSON.stringify({
+        ...payload,
+        password: adminPassword,
+        divisi: payload.divisi || adminDivisi,
+        periode: payload.periode || currentPeriode
+      })
     });
     return res.json();
   }
-  // dipakai member — TANPA password sama sekali
+  // dipakai member & Ikhtisar — TANPA password sama sekali
   async function apiGetPublic(action, extraParams){
     const params = new URLSearchParams({ action, ...extraParams });
     const res = await fetch(`${API_URL}?${params.toString()}`);
@@ -435,9 +439,16 @@
   }
 
   // ---- PILIH PERAN ----
-  $('#goAdminBtn').addEventListener('click', ()=>{
+  $('#goAdminBtn').addEventListener('click', async ()=>{
     $('#roleScreen').style.display = 'none';
     $('#loginScreen').style.display = 'flex';
+    try{
+      const result = await apiGetPublic('list_divisi_public');
+      const list = result.ok && result.data.length ? result.data : ['BOD'];
+      $('#loginDivisi').innerHTML = list.map(d => `<option value="${d}">${d}</option>`).join('');
+    } catch(err){
+      $('#loginDivisi').innerHTML = '<option value="BOD">BOD</option>';
+    }
   });
   $('#backToRoleFromLogin').addEventListener('click', ()=>{
     $('#loginScreen').style.display = 'none';
@@ -461,14 +472,20 @@
 
   async function doLogin(){
     const pw = $('#passwordInput').value.trim();
-    if(!pw) return;
+    const divisi = $('#loginDivisi').value;
+    if(!pw || !divisi) return;
     adminPassword = pw;
+    adminDivisi = divisi;
+    isBod = isBodNama(divisi);
     $('#loginErr').textContent = 'Memeriksa...';
     try{
       const result = await apiPost({ action: 'login' });
       if(result.ok){
         $('#loginScreen').style.display = 'none';
         $('#app').style.display = 'block';
+        $('#appTitle').textContent = `Dashboard — ${adminDivisi}`;
+        $('#tabAnggotaBtn').style.display = isBod ? 'inline-block' : 'none';
+        $('#openPeriodeBaru').style.display = isBod ? 'inline-block' : 'none';
         await loadPeriodeList();
       } else {
         $('#loginErr').textContent = 'Password salah, coba lagi.';
@@ -480,37 +497,77 @@
   }
 
   $('#logoutBtn').addEventListener('click', ()=>{
-    adminPassword = '';
+    adminPassword = ''; adminDivisi = null; isBod = false;
     $('#app').style.display = 'none';
     $('#roleScreen').style.display = 'flex';
     $('#passwordInput').value = '';
   });
 
-  // ---- MEMBER: ikhtisar read-only, TANPA login ----
-  async function loadMemberPeriodeList(){
-    const result = await apiGetPublic('list_periode_public');
-    if(!result.ok){ showToast(result.error || 'Gagal memuat periode', true); return; }
-    memberPeriodeList = result.data;
-    if(memberPeriodeList.length === 0){ $('#memberInfo').textContent = 'Belum ada data periode.'; return; }
-    if(!memberCurrentPeriode || !memberPeriodeList.includes(memberCurrentPeriode)) memberCurrentPeriode = memberPeriodeList[0];
-    $('#memberPeriodeSelect').innerHTML = memberPeriodeList.map(p => `<option value="${p}" ${p===memberCurrentPeriode?'selected':''}>${p}</option>`).join('');
-    await loadMemberData();
-  }
-
-  $('#memberPeriodeSelect').addEventListener('change', async (e)=>{
-    memberCurrentPeriode = e.target.value;
-    await loadMemberData();
+  // ---- TABS (ADMIN) ----
+  $$('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $$('.tab-btn').forEach(b=> b.classList.remove('active'));
+      btn.classList.add('active');
+      $$('.panel').forEach(p=> p.classList.remove('active'));
+      $(`#panel-${btn.dataset.tab}`).classList.add('active');
+    });
   });
 
-  async function loadMemberData(){
-    const result = await apiGetPublic('public_data', { periode: memberCurrentPeriode });
-    if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
-    renderIkhtisar_('member', result.data);
+  // ---- PERIODE (admin) ----
+  async function loadPeriodeList(){
+    const result = await apiGetPublic('list_periode_public');
+    if(!result.ok){ showToast(result.error || 'Gagal memuat daftar periode', true); return; }
+    periodeList = result.data;
+    if(periodeList.length === 0){ showToast('Belum ada periode. Bikin sheet "2026 | BOD" dulu.', true); return; }
+    if(!currentPeriode || !periodeList.includes(currentPeriode)) currentPeriode = periodeList[0];
+    $('#periodeSelect').innerHTML = periodeList.map(p => `<option value="${p}" ${p===currentPeriode?'selected':''}>${p}</option>`).join('');
+    await loadData();
   }
 
-  // dipakai member (data dari public_data) DAN admin (data dihitung dari dashboardData yang sudah dimuat)
+  $('#periodeSelect').addEventListener('change', async (e)=>{
+    currentPeriode = e.target.value;
+    await loadData();
+  });
+
+  $('#openPeriodeBaru').addEventListener('click', ()=>{
+    $('#newNamaPeriode').value = '';
+    $('#modalPeriodeBaru').classList.add('show');
+  });
+  $('#cancelPeriodeBaru').addEventListener('click', ()=> $('#modalPeriodeBaru').classList.remove('show'));
+  $('#savePeriodeBaru').addEventListener('click', async ()=>{
+    const nama = $('#newNamaPeriode').value.trim();
+    if(!nama){ showToast('Nama periode wajib diisi', true); return; }
+    const result = await apiPost({ action:'buat_periode', nama_periode: nama, sumber_periode: currentPeriode });
+    if(result.ok){
+      showToast(`Periode ${nama} dibuat`);
+      $('#modalPeriodeBaru').classList.remove('show');
+      currentPeriode = nama;
+      await loadPeriodeList();
+    } else showToast(result.error, true);
+  });
+
+  // ---- LOAD DATA (periode + divisi login aktif) ----
+  async function loadData(){
+    const result = await apiGet('admin_data', { periode: currentPeriode });
+    if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
+    dashboardData = result.data;
+    await loadIkhtisar_('ikhtisar', currentPeriode);
+    renderRankingDetail_();
+    renderMatrix();
+    if(isBod) renderAnggota();
+  }
+
+  /* ===========================================================
+   * IKHTISAR (gabungan semua divisi) — dipakai member & tab admin
+   * =========================================================== */
+  async function loadIkhtisar_(prefix, periode){
+    const result = await apiGetPublic('public_data', { periode });
+    if(!result.ok){ showToast(result.error || 'Gagal memuat ikhtisar', true); return; }
+    renderIkhtisar_(prefix, result.data);
+  }
+
   function renderIkhtisar_(prefix, data){
-    $(`#${prefix}Info`).textContent = `${data.total_anggota} anggota · ${data.total_kegiatan} kegiatan tercatat`;
+    $(`#${prefix}Info`).textContent = `${data.total_anggota} anggota · ${data.total_kegiatan} kegiatan tercatat (semua divisi)`;
 
     if(data.total_kegiatan === 0 || data.total_anggota === 0){
       $(`#${prefix}Content`).style.display = 'none';
@@ -615,107 +672,22 @@
     });
   }
 
-  // Versi admin: dihitung langsung dari dashboardData yang sudah dimuat (admin_data),
-  // jadi tidak perlu panggilan API tambahan — logikanya sama persis dengan
-  // buildPublicSummary_ di backend, cuma dijalankan di browser dari data yang sudah ada.
-  function computeIkhtisarDariDashboard_(dashboardData){
-    const semuaAnggota = [];
-    dashboardData.divisi.forEach(d => d.anggota.forEach(a => semuaAnggota.push(a)));
-
-    let totH = 0, totA = 0, totI = 0, totB = 0;
-    semuaAnggota.forEach(a => { totH += a.stats.H; totA += a.stats.A; totI += a.stats.I; totB += a.stats.B; });
-    const totalTertandai = totH + totA + totI;
-    const persenHadir = totalTertandai > 0 ? Math.round((totH / totalTertandai) * 1000) / 10 : null;
-
-    const perKegiatan = dashboardData.kegiatan.map(k=>{
-      let h = 0, a = 0, i = 0, b = 0;
-      semuaAnggota.forEach(ang=>{
-        const st = ang.kehadiran[k.col] || '';
-        if(st === 'H') h++;
-        else if(st === 'A') a++;
-        else if(st === 'I') i++;
-        else if(st === 'B') b++;
-      });
-      const total = h + a + i;
-      return { nama: k.nama, tanggal: k.tanggal, H: h, A: a, I: i, B: b,
-        persen_hadir: total > 0 ? Math.round((h / total) * 1000) / 10 : null };
-    });
-
-    const perDivisi = dashboardData.divisi.map(d=>{
-      const punyaData = d.anggota.filter(a => a.stats.persen_hadir !== null);
-      const rata2 = punyaData.length
-        ? Math.round((punyaData.reduce((s,a)=>s+a.stats.persen_hadir, 0) / punyaData.length) * 10) / 10
-        : null;
-      return { nama: d.nama, jumlah_anggota: d.anggota.length, persen_hadir_rata2: rata2 };
-    });
-
-    return {
-      total_kegiatan: dashboardData.kegiatan.length,
-      total_anggota: semuaAnggota.length,
-      keseluruhan: { H: totH, A: totA, I: totI, B: totB, persen_hadir: persenHadir },
-      per_kegiatan: perKegiatan,
-      per_divisi: perDivisi,
-      divisi: dashboardData.divisi
-    };
+  // ---- MEMBER (public) ----
+  async function loadMemberPeriodeList(){
+    const result = await apiGetPublic('list_periode_public');
+    if(!result.ok){ showToast(result.error || 'Gagal memuat periode', true); return; }
+    memberPeriodeList = result.data;
+    if(memberPeriodeList.length === 0){ $('#memberInfo').textContent = 'Belum ada data periode.'; return; }
+    if(!memberCurrentPeriode || !memberPeriodeList.includes(memberCurrentPeriode)) memberCurrentPeriode = memberPeriodeList[0];
+    $('#memberPeriodeSelect').innerHTML = memberPeriodeList.map(p => `<option value="${p}" ${p===memberCurrentPeriode?'selected':''}>${p}</option>`).join('');
+    await loadIkhtisar_('member', memberCurrentPeriode);
   }
-
-  // ---- TABS (ADMIN) ----
-  $$('.tab-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      $$('.tab-btn').forEach(b=> b.classList.remove('active'));
-      btn.classList.add('active');
-      $$('.panel').forEach(p=> p.classList.remove('active'));
-      $(`#panel-${btn.dataset.tab}`).classList.add('active');
-    });
+  $('#memberPeriodeSelect').addEventListener('change', async (e)=>{
+    memberCurrentPeriode = e.target.value;
+    await loadIkhtisar_('member', memberCurrentPeriode);
   });
 
-  // ---- PERIODE ----
-  async function loadPeriodeList(){
-    const result = await apiGet('list_periode');
-    if(!result.ok){ showToast(result.error || 'Gagal memuat daftar periode', true); return; }
-    periodeList = result.data;
-    if(periodeList.length === 0){ showToast('Belum ada sheet periode. Rename tab sheet jadi "2026" dulu.', true); return; }
-    if(!currentPeriode || !periodeList.includes(currentPeriode)) currentPeriode = periodeList[0];
-    $('#periodeSelect').innerHTML = periodeList.map(p => `<option value="${p}" ${p===currentPeriode?'selected':''}>${p}</option>`).join('');
-    await loadData();
-  }
-
-  $('#periodeSelect').addEventListener('change', async (e)=>{
-    currentPeriode = e.target.value;
-    await loadData();
-  });
-
-  $('#openPeriodeBaru').addEventListener('click', ()=>{
-    $('#newNamaPeriode').value = '';
-    $('#modalPeriodeBaru').classList.add('show');
-  });
-  $('#cancelPeriodeBaru').addEventListener('click', ()=> $('#modalPeriodeBaru').classList.remove('show'));
-  $('#savePeriodeBaru').addEventListener('click', async ()=>{
-    const nama = $('#newNamaPeriode').value.trim();
-    if(!nama){ showToast('Nama periode wajib diisi', true); return; }
-    const result = await apiPost({ action:'buat_periode', nama_periode: nama, sumber_periode: currentPeriode });
-    if(result.ok){
-      showToast(`Periode ${nama} dibuat`);
-      $('#modalPeriodeBaru').classList.remove('show');
-      currentPeriode = nama;
-      await loadPeriodeList();
-    } else {
-      showToast(result.error, true);
-    }
-  });
-
-  // ---- LOAD DATA (periode aktif) ----
-  async function loadData(){
-    const result = await apiGet('admin_data', { periode: currentPeriode });
-    if(!result.ok){ showToast(result.error || 'Gagal memuat data', true); return; }
-    dashboardData = result.data;
-    renderIkhtisar_('ikhtisar', computeIkhtisarDariDashboard_(dashboardData));
-    renderRankingDetail_();
-    renderMatrix();
-    renderAnggota();
-  }
-
-  // ---- MODAL: DETAIL RANKING ANGGOTA (dibuka dari tombol di tab Ikhtisar) ----
+  // ---- MODAL: DETAIL RANKING ANGGOTA (dari tab Ikhtisar admin) ----
   $('#openRankingDetail').addEventListener('click', ()=>{
     renderRankingDetail_();
     $('#modalRankingDetail').classList.add('show');
@@ -732,9 +704,8 @@
 
     const wrap = $('#rankingDetailList');
     wrap.innerHTML = '';
-
     if(terurut.length === 0){
-      wrap.innerHTML = '<div class="empty-msg">Belum ada kehadiran yang ditandai.</div>';
+      wrap.innerHTML = `<div class="empty-msg">Belum ada kehadiran yang ditandai di ${adminDivisi}.</div>`;
       return;
     }
 
@@ -761,9 +732,9 @@
     }
   }
 
-  // ---- MATRIX TAB ----
+  // ---- MATRIX TAB (kegiatan & kehadiran divisi yang sedang login) ----
   function renderMatrix(){
-    $('#rekapInfo').textContent = `${dashboardData.kegiatan.length} kegiatan · geser tabel ke samping untuk lihat semua`;
+    $('#rekapInfo').textContent = `${adminDivisi} · ${dashboardData.kegiatan.length} kegiatan · geser tabel ke samping untuk lihat semua`;
     const table = $('#matrixTable');
     table.innerHTML = '';
 
@@ -843,8 +814,6 @@
   });
 
   // ---- TAMBAH / EDIT / HAPUS KEGIATAN ----
-  let kegiatanEditTarget = null; // { col } saat mode edit, null saat mode tambah
-
   $('#openTambahKegiatan').addEventListener('click', ()=>{
     kegiatanEditTarget = null;
     $('#modalKegiatanTitle').textContent = 'Tambah kegiatan baru';
@@ -896,13 +865,14 @@
     } else showToast(result.error, true);
   });
 
-  // ---- ANGGOTA TAB ----
+  // ---- ANGGOTA TAB (BOD saja) ----
   function renderAnggota(){
     const totalAnggota = dashboardData.divisi.reduce((n,d)=> n + d.anggota.length, 0);
-    $('#anggotaInfo').textContent = `${totalAnggota} anggota di periode ${currentPeriode}`;
+    $('#anggotaInfo').textContent = `${totalAnggota} anggota · roster BOD, periode ${currentPeriode}`;
 
-    // isi datalist divisi utk modal tambah/edit
-    $('#divisiOptions').innerHTML = dashboardData.divisi.map(d => `<option value="${d.nama}">`).join('');
+    $('#divisiOptions').innerHTML = dashboardData.divisi
+      .filter(d => !isBodNama(d.nama))
+      .map(d => `<option value="${d.nama}">`).join('');
 
     const wrap = $('#anggotaList');
     wrap.innerHTML = '';
@@ -949,13 +919,13 @@
   $('#cancelAnggota').addEventListener('click', ()=> $('#modalAnggota').classList.remove('show'));
   $('#saveAnggota').addEventListener('click', async ()=>{
     const nama = $('#anggotaNama').value.trim();
-    const divisi = $('#anggotaDivisi').value.trim();
+    const divisiAnggota = $('#anggotaDivisi').value.trim();
     if(!nama){ showToast('Nama wajib diisi', true); return; }
 
     const action = editAnggotaTarget ? 'edit_anggota' : 'tambah_anggota';
     const payload = editAnggotaTarget
-      ? { action, row: editAnggotaTarget.row, nama, divisi }
-      : { action, nama, divisi };
+      ? { action, row: editAnggotaTarget.row, nama, divisi_anggota: divisiAnggota }
+      : { action, nama, divisi_anggota: divisiAnggota };
 
     const result = await apiPost(payload);
     if(result.ok){
