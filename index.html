@@ -131,7 +131,16 @@
   .bar-row .bar-pct.na{ color:var(--text-lo); font-family:'Inter',sans-serif; font-weight:400; font-size:11px; }
 
   /* ---- MATRIX TAB ---- */
-  .matrix-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  .matrix-scroll{
+    overflow-x:auto; border:1px solid var(--line); border-radius:12px;
+    -webkit-overflow-scrolling:touch; touch-action:pan-x; overscroll-behavior-x:contain;
+    scrollbar-width:auto; scrollbar-color:var(--gold) var(--navy-panel);
+  }
+  /* Bikin scrollbar horizontal selalu kelihatan & gampang ditarik langsung
+   * pakai jari di HP, jadi tidak wajib mulai geser dari atas kolom sticky. */
+  .matrix-scroll::-webkit-scrollbar{ height:10px; }
+  .matrix-scroll::-webkit-scrollbar-track{ background:var(--navy-panel); }
+  .matrix-scroll::-webkit-scrollbar-thumb{ background:var(--gold); border-radius:99px; }
   table.matrix{ border-collapse:collapse; font-size:12.5px; white-space:nowrap; }
   table.matrix th, table.matrix td{ padding:8px 10px; border-bottom:1px solid var(--line); text-align:center; }
   table.matrix thead th{ background:var(--navy-panel-2); font-family:'Oswald',sans-serif; font-weight:600; font-size:11.5px; color:var(--gold); vertical-align:bottom; }
@@ -149,6 +158,7 @@
   .cell-status{
     display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
     border-radius:7px; border:1px solid var(--line); cursor:pointer; font-weight:700; font-size:12px; font-family:'Oswald',sans-serif;
+    touch-action:manipulation;
   }
   .cell-status.h{ background:rgba(62,217,168,.16); color:var(--teal); border-color:rgba(62,217,168,.4); }
   .cell-status.a{ background:rgba(226,96,79,.16); color:var(--rust); border-color:rgba(226,96,79,.4); }
