@@ -9,24 +9,26 @@
  * ---------------------------------------------------------
  * 1 periode sekarang terdiri dari BEBERAPA sheet, bukan cuma 1:
  *   - "{periode} | BOD"      -> roster SEMUA anggota (dikelompokkan per
- *                               divisi, sama seperti struktur lama), PLUS
- *                               kegiatan yang diurus BOD sendiri (Rapat
- *                               Umum, Rapat Inti, rapat-rapat lain) yang
- *                               berlaku untuk SEMUA anggota apa pun divisinya.
+ *                               divisi), PLUS kegiatan yang diurus BOD
+ *                               sendiri (Rapat Umum, Rapat Inti, rapat-rapat
+ *                               lain) yang berlaku untuk SEMUA anggota.
  *   - "{periode} | {Divisi}" -> 1 sheet per divisi (Training, dst — otomatis
  *                               mengikuti nama grup yang ada di roster BOD,
  *                               KECUALI grup BOD/Board of Director itu sendiri).
  *                               Isinya kegiatan & kehadiran milik divisi itu
- *                               SAJA, terpisah total dari BOD dan divisi lain.
- *                               Anggotanya dikelompokkan jadi 2 grup:
- *                               "{Divisi}" (aktif) dan "Non-Aktif (Pindah
- *                               Divisi)" (bekas anggota yang sudah pindah,
- *                               datanya dipertahankan biar ikhtisar tetap akurat).
+ *                               SENDIRI, tapi ROSTER-nya tetap SELURUH
+ *                               anggota organisasi (sama seperti BOD) —
+ *                               karena peserta 1 kegiatan divisi BISA dari
+ *                               divisi lain juga. Status "B" (Bukan Peserta)
+ *                               dipakai untuk anggota yang memang bukan
+ *                               peserta kegiatan itu.
+ * Semua sheet (BOD + tiap divisi) SELALU punya roster yang sama persis
+ * (nama & pengelompokan divisi) — cuma beda di kolom kegiatannya masing-
+ * masing. Setiap ada tambah/edit/pindah/hapus anggota di BOD, backend ini
+ * otomatis menyamakan roster itu ke SEMUA sheet lain juga.
  *
  * HANYA BOD yang bisa: tambah/edit/pindah/hapus anggota, dan bikin periode
- * baru. Semua propagasi ke sheet divisi terkait (bikin sheet baru kalau
- * belum ada, arsipkan kalau pindah, hapus kalau memang dihapus) dilakukan
- * otomatis oleh backend ini setiap ada perubahan roster di BOD.
+ * baru.
  *
  * Password ADMIN beda per divisi, disimpan di Script Properties dengan
  * pola key: ADMIN_PASSWORD_<NAMA_DIVISI_DALAM_HURUF_BESAR_TANPA_SPASI>.
@@ -36,8 +38,11 @@
  * Kalau BOD bikin divisi baru, WAJIB tambahkan Script Property untuk
  * password divisi itu secara manual sebelum divisi itu bisa dipakai login.
  *
- * Tab "Ikhtisar" (baik di halaman admin maupun tampilan publik "Anggota",
- * tanpa login) selalu berupa GABUNGAN dari BOD + semua sheet divisi.
+ * Tab "Ikhtisar" beda isinya tergantung siapa yang lihat:
+ *   - Admin manapun yang login (BOD atau divisi tertentu): Ikhtisar HANYA
+ *     berisi kegiatan divisinya SENDIRI (dihitung dari sheet mereka saja).
+ *   - Tampilan publik "Anggota" (tanpa login): Ikhtisar GABUNGAN dari
+ *     BOD + semua sheet divisi.
  *
  * Cara pasang: sama seperti sebelumnya — tempel ini sebagai Code.gs,
  * Script Properties diisi ADMIN_PASSWORD_BOD dan ADMIN_PASSWORD_<DIVISI>
@@ -54,7 +59,7 @@ const FIRST_DATA_ROW = 4;
 const FIRST_ACTIVITY_COL = 3; // kolom C
 
 const STATUS_VALID = ['H', 'A', 'I', 'B', ''];
-const NONAKTIF_LABEL = 'Non-Aktif (Pindah Divisi)';
+const NONAKTIF_LABEL = 'Non-Aktif (Pindah Divisi)'; // sisa desain lama, hanya dipakai file migrasi
 
 function getSS_() {
   return SpreadsheetApp.getActiveSpreadsheet();
@@ -134,16 +139,17 @@ function listDivisi_(ss, periode) {
 
 /* ---------------------------------------------------------
  * doGet
- *   (tanpa action)                                   -> status API
+ *   (tanpa action)                                   -> halaman dashboard (Admin.html)
  *   action=list_periode_public                        -> daftar periode (semua orang)
  *   action=list_divisi_public&periode=                -> daftar divisi utk periode itu (semua orang, buat dropdown login)
  *   action=public_data&periode=                        -> ikhtisar GABUNGAN (semua orang, read-only)
+ *   action=admin_ikhtisar&password=&periode=&divisi=   -> ikhtisar HANYA kegiatan divisi itu (admin)
  *   action=admin_data&password=&periode=&divisi=       -> data 1 sheet (roster+kegiatan BOD, atau kegiatan divisi)
  * --------------------------------------------------------- */
 function doGet(e) {
   const action = e.parameter && e.parameter.action;
   if (!action) {
-    return jsonOut_({ ok: true, message: 'API Dashboard Keaktifan Anggota — KSPM ESTOC. Halaman admin ada di Netlify, bukan di sini.' });
+    return serveAdminPage_();
   }
 
   const ss = getSS_();
@@ -166,6 +172,13 @@ function doGet(e) {
       return jsonOut_({ ok: true, data: data });
     }
 
+    if (action === 'admin_ikhtisar') {
+      if (!checkDivisiAuth_(e.parameter.divisi, e.parameter.password)) return jsonOut_({ ok: false, error: 'Password salah' });
+      const sheet = getDivisiSheet_(ss, e.parameter.periode, e.parameter.divisi);
+      if (!sheet) return jsonOut_({ ok: false, error: 'Sheet tidak ditemukan' });
+      return jsonOut_({ ok: true, data: buildIkhtisarDivisi_(sheet) });
+    }
+
     if (action === 'admin_data') {
       if (!checkDivisiAuth_(e.parameter.divisi, e.parameter.password)) return jsonOut_({ ok: false, error: 'Password salah' });
       const sheet = getDivisiSheet_(ss, e.parameter.periode, e.parameter.divisi);
@@ -177,6 +190,18 @@ function doGet(e) {
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
   }
+}
+
+/* Halaman dashboard yang dilayani langsung oleh Apps Script (URL /exec
+ * tanpa parameter). File HTML-nya bernama "Admin" (Admin.html) di project
+ * ini. API_URL diisi otomatis dengan URL web app ini sendiri. */
+function serveAdminPage_() {
+  const tpl = HtmlService.createTemplateFromFile('Admin');
+  tpl.apiUrl = ScriptApp.getService().getUrl();
+  return tpl.evaluate()
+    .setTitle('Dashboard Keaktifan — KSPM ESTOC')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /* ---------------------------------------------------------
@@ -369,22 +394,6 @@ function renumberSemua_(sheet) {
   });
 }
 
-/* Pindahkan 1 anggota (dicari berdasarkan NAMA, karena nomor baris beda
- * antar sheet) dari grup aktif ke grup "Non-Aktif (Pindah Divisi)" di
- * sheet divisi yang sama — datanya (termasuk kehadiran) tetap dipertahankan. */
-function arsipkanAnggota_(sheet, groupAktifNama, nama) {
-  const structure = getFullStructure_(sheet);
-  const group = structure.find(d => d.nama === groupAktifNama);
-  if (!group) return;
-  const target = group.anggota.find(a => a.nama === nama);
-  if (!target) return;
-
-  const lastCol = Math.max(sheet.getLastColumn(), FIRST_ACTIVITY_COL - 1);
-  const rowValues = sheet.getRange(target.row, 1, 1, lastCol).getValues()[0];
-  sheet.deleteRow(target.row);
-  insertAnggotaDiDivisi_(sheet, NONAKTIF_LABEL, rowValues, nama);
-}
-
 /* Hapus permanen 1 anggota (dicari berdasarkan nama) dari grup tertentu di sheet. */
 function hapusAnggotaByNama_(sheet, groupNama, nama) {
   const structure = getFullStructure_(sheet);
@@ -422,12 +431,12 @@ function buatPeriodeBaru_(ss, body) {
     bodBaru.getRange(FIRST_DATA_ROW, 1, dataAB.length, 2).setValues(dataAB);
   }
 
-  // bikinkan juga sheet kosong utk tiap divisi (selain grup BOD), isi anggota aktifnya sesuai roster baru
+  // bikinkan juga sheet kosong utk tiap divisi (selain grup BOD), isi SELURUH roster
+  // (semua grup) — tanpa kegiatan & kehadiran
   const struktur = getFullStructure_(bodBaru);
   struktur.forEach(d => {
     if (isBodLabel_(d.nama)) return;
-    const dSheet = getOrCreateDivisiSheet_(ss, namaPeriode, d.nama);
-    d.anggota.forEach(a => insertAnggotaDiDivisi_(dSheet, d.nama, null, a.nama));
+    pastikanSheetDivisiSiap_(ss, namaPeriode, d.nama);
   });
 
   return jsonOut_({ ok: true, periode: namaPeriode });
@@ -495,8 +504,53 @@ function updateKehadiran_(sheet, body) {
 
 /* ===========================================================
  * KELOLA ANGGOTA — BOD ONLY. `sheet` di sini SELALU sheet BOD (roster),
- * dan tiap perubahan di-propagate otomatis ke sheet divisi terkait.
+ * dan tiap perubahan di-propagate otomatis ke SEMUA sheet divisi lain
+ * (karena roster-nya memang harus sama di semua sheet).
  * =========================================================== */
+
+/* Cari 1 anggota berdasarkan NAMA di sembarang grup dalam 1 sheet.
+ * Dipakai buat operasi lintas-sheet karena nomor baris beda-beda tiap sheet. */
+function cariAnggotaDiSheetByNama_(sheet, nama) {
+  const struktur = getFullStructure_(sheet);
+  for (const g of struktur) {
+    const found = g.anggota.find(a => a.nama === nama);
+    if (found) return { groupNama: g.nama, row: found.row };
+  }
+  return null;
+}
+
+/* Pindahkan posisi 1 anggota (dicari by nama) ke grup lain DI SHEET YANG
+ * SAMA — data kehadiran di sheet itu tetap dipertahankan apa adanya,
+ * cuma posisinya (grup/divisinya) yang berubah. */
+function pindahkanPosisiAnggota_(sheet, namaLama, divisiBaru, namaBaru) {
+  const info = cariAnggotaDiSheetByNama_(sheet, namaLama);
+  if (!info) return;
+  const lastCol = Math.max(sheet.getLastColumn(), FIRST_ACTIVITY_COL - 1);
+  const rowValues = sheet.getRange(info.row, 1, 1, lastCol).getValues()[0];
+  sheet.deleteRow(info.row);
+  insertAnggotaDiDivisi_(sheet, divisiBaru, rowValues, namaBaru);
+}
+
+/* Isi sheet divisi yang BARU DIBUAT dengan salinan roster lengkap dari
+ * BOD (semua grup, semua anggota) — karena tiap sheet wajib punya roster
+ * yang sama, biar siapa saja bisa jadi peserta kegiatan divisi manapun. */
+function syncSheetBaruDenganRoster_(ss, periode, sheetBaru) {
+  const bodSheet = getDivisiSheet_(ss, periode, BOD_LABEL);
+  if (!bodSheet) return;
+  const struktur = getFullStructure_(bodSheet);
+  struktur.forEach(d => d.anggota.forEach(a => insertAnggotaDiDivisi_(sheetBaru, d.nama, null, a.nama)));
+}
+
+/* Pastikan sheet divisi `divisi` ada; kalau baru dibuat, langsung isi
+ * roster lengkap (bukan cuma nama satu anggota) supaya konsisten. */
+function pastikanSheetDivisiSiap_(ss, periode, divisi) {
+  if (isBodLabel_(divisi)) return null;
+  const sudahAda = !!ss.getSheetByName(sheetName_(periode, divisi));
+  const sheet = getOrCreateDivisiSheet_(ss, periode, divisi);
+  if (!sudahAda) syncSheetBaruDenganRoster_(ss, periode, sheet);
+  return sheet;
+}
+
 function tambahAnggotaBod_(ss, bodSheet, body) {
   const nama = String(body.nama || '').trim();
   const divisi = String(body.divisi_anggota || body.divisi_baru || '').trim() || '(Tanpa Grup)';
@@ -504,10 +558,16 @@ function tambahAnggotaBod_(ss, bodSheet, body) {
 
   insertAnggotaDiDivisi_(bodSheet, divisi, null, nama);
 
-  if (!isBodLabel_(divisi)) {
-    const dSheet = getOrCreateDivisiSheet_(ss, body.periode, divisi);
-    insertAnggotaDiDivisi_(dSheet, divisi, null, nama);
-  }
+  // tambahkan juga ke SEMUA sheet divisi lain yang sudah ada (roster harus sama di mana-mana)
+  listDivisi_(ss, body.periode).filter(d => !isBodLabel_(d)).forEach(divName => {
+    const sheet = getDivisiSheet_(ss, body.periode, divName);
+    if (sheet) insertAnggotaDiDivisi_(sheet, divName, null, nama);
+  });
+
+  // kalau divisi yang dipilih ternyata baru (belum ada sheet-nya), buat + sync roster
+  // (otomatis ikut memasukkan anggota baru ini juga, karena sudah ditambahkan ke BOD di atas)
+  pastikanSheetDivisiSiap_(ss, body.periode, divisi);
+
   return jsonOut_({ ok: true });
 }
 
@@ -527,37 +587,37 @@ function editAnggotaBod_(ss, bodSheet, body) {
   if (divisiSekarang === null) return jsonOut_({ ok: false, error: 'Anggota tidak ditemukan' });
 
   const pindahDivisi = divisiBaru && divisiBaru !== divisiSekarang;
+  const daftarSheetLain = listDivisi_(ss, body.periode).filter(d => !isBodLabel_(d));
 
   if (!pindahDivisi) {
     bodSheet.getRange(row, 2).setValue(namaBaru);
-    // nama berubah tapi divisi tetap -> ikut ubah nama di sheet divisinya juga (kalau bukan grup BOD)
-    if (namaBaru !== namaLama && !isBodLabel_(divisiSekarang)) {
-      const dSheet = getDivisiSheet_(ss, body.periode, divisiSekarang);
-      if (dSheet) {
-        const struk = getFullStructure_(dSheet);
-        const grp = struk.find(d => d.nama === divisiSekarang);
-        const target = grp && grp.anggota.find(a => a.nama === namaLama);
-        if (target) dSheet.getRange(target.row, 2).setValue(namaBaru);
-      }
+    if (namaBaru !== namaLama) {
+      // nama berubah tapi divisi tetap -> ikut ubah nama di SEMUA sheet lain juga
+      daftarSheetLain.forEach(divName => {
+        const sheet = getDivisiSheet_(ss, body.periode, divName);
+        if (!sheet) return;
+        const info = cariAnggotaDiSheetByNama_(sheet, namaLama);
+        if (info) sheet.getRange(info.row, 2).setValue(namaBaru);
+      });
     }
     return jsonOut_({ ok: true });
   }
 
-  // pindah divisi: update roster BOD (bawa data lengkap barisnya, sama seperti sebelumnya)
+  // pindah divisi: reposisikan di BOD (bawa data lengkap barisnya)
   const lastCol = Math.max(bodSheet.getLastColumn(), FIRST_ACTIVITY_COL - 1);
   const rowValues = bodSheet.getRange(row, 1, 1, lastCol).getValues()[0];
   bodSheet.deleteRow(row);
   insertAnggotaDiDivisi_(bodSheet, divisiBaru, rowValues, namaBaru);
 
-  // arsipkan di sheet divisi lama (kalau ada), tambahkan baris baru di sheet divisi baru (kalau bukan grup BOD)
-  if (!isBodLabel_(divisiSekarang)) {
-    const dLama = getDivisiSheet_(ss, body.periode, divisiSekarang);
-    if (dLama) arsipkanAnggota_(dLama, divisiSekarang, namaLama);
-  }
-  if (!isBodLabel_(divisiBaru)) {
-    const dBaru = getOrCreateDivisiSheet_(ss, body.periode, divisiBaru);
-    insertAnggotaDiDivisi_(dBaru, divisiBaru, null, namaBaru);
-  }
+  // reposisikan juga di SEMUA sheet divisi lain — data kehadiran di tiap sheet
+  // itu TIDAK ikut berubah, cuma grup/label divisinya yang disamakan ulang
+  daftarSheetLain.forEach(divName => {
+    const sheet = getDivisiSheet_(ss, body.periode, divName);
+    if (sheet) pindahkanPosisiAnggota_(sheet, namaLama, divisiBaru, namaBaru);
+  });
+
+  // kalau divisi tujuan baru (belum ada sheet-nya), buat + sync roster
+  pastikanSheetDivisiSiap_(ss, body.periode, divisiBaru);
 
   return jsonOut_({ ok: true });
 }
@@ -567,20 +627,23 @@ function hapusAnggotaBod_(ss, bodSheet, body) {
   if (!row || row < FIRST_DATA_ROW) return jsonOut_({ ok: false, error: 'Baris anggota tidak valid' });
 
   const structure = getFullStructure_(bodSheet);
-  let divisi = null, nama = null;
+  let nama = null;
   structure.forEach(d => {
     const found = d.anggota.find(a => a.row === row);
-    if (found) { divisi = d.nama; nama = found.nama; }
+    if (found) nama = found.nama;
   });
-  if (divisi === null) return jsonOut_({ ok: false, error: 'Anggota tidak ditemukan' });
+  if (nama === null) return jsonOut_({ ok: false, error: 'Anggota tidak ditemukan' });
 
   bodSheet.deleteRow(row);
   renumberSemua_(bodSheet);
 
-  if (!isBodLabel_(divisi)) {
-    const dSheet = getDivisiSheet_(ss, body.periode, divisi);
-    if (dSheet) hapusAnggotaByNama_(dSheet, divisi, nama);
-  }
+  // hapus juga dari SEMUA sheet divisi lain
+  listDivisi_(ss, body.periode).filter(d => !isBodLabel_(d)).forEach(divName => {
+    const sheet = getDivisiSheet_(ss, body.periode, divName);
+    if (!sheet) return;
+    const info = cariAnggotaDiSheetByNama_(sheet, nama);
+    if (info) { sheet.deleteRow(info.row); renumberSemua_(sheet); }
+  });
 
   return jsonOut_({ ok: true });
 }
@@ -673,6 +736,51 @@ function buildIkhtisarGabungan_(ss, periode) {
     total_anggota: Object.keys(gabungan).length,
     keseluruhan: { H: totH, A: totA, I: totI, B: totB,
       persen_hadir: totalTertandaiSemua > 0 ? Math.round((totH / totalTertandaiSemua) * 1000) / 10 : null },
+    per_kegiatan: perKegiatan,
+    per_divisi: perDivisi,
+    divisi: divisiOut
+  };
+}
+
+/* ===========================================================
+ * IKHTISAR 1 DIVISI — dipakai tab "Ikhtisar" di halaman admin.
+ * Hanya menghitung kegiatan di sheet divisi itu sendiri. Bentuk
+ * outputnya sama dengan buildIkhtisarGabungan_ supaya frontend
+ * memakai fungsi render yang sama.
+ * =========================================================== */
+function buildIkhtisarDivisi_(sheet) {
+  const full = buildDashboardData_(sheet);
+  const perKegiatan = full.kegiatan.map(k => {
+    let h = 0, a = 0, i = 0, b = 0;
+    full.divisi.forEach(d => d.anggota.forEach(ang => {
+      const st = ang.kehadiran[k.col] || '';
+      if (st === 'H') h++; else if (st === 'A') a++; else if (st === 'I') i++; else if (st === 'B') b++;
+    }));
+    const total = h + a + i;
+    return { nama: k.nama, tanggal: k.tanggal, H: h, A: a, I: i, B: b,
+      persen_hadir: total > 0 ? Math.round((h / total) * 1000) / 10 : null };
+  });
+
+  let totH = 0, totA = 0, totI = 0, totB = 0, totalAnggota = 0;
+  const perDivisi = [];
+  const divisiOut = full.divisi.map(d => {
+    const punyaData = d.anggota.filter(a => a.stats.persen_hadir !== null);
+    const rata2 = punyaData.length
+      ? Math.round((punyaData.reduce((s, a) => s + a.stats.persen_hadir, 0) / punyaData.length) * 10) / 10
+      : null;
+    perDivisi.push({ nama: d.nama, jumlah_anggota: d.anggota.length, persen_hadir_rata2: rata2 });
+    totalAnggota += d.anggota.length;
+    d.anggota.forEach(a => { totH += a.stats.H; totA += a.stats.A; totI += a.stats.I; totB += a.stats.B; });
+    return { nama: d.nama, anggota: d.anggota.map(a => ({ nama: a.nama,
+      stats: { H: a.stats.H, A: a.stats.A, I: a.stats.I, B: a.stats.B, persen_hadir: a.stats.persen_hadir } })) };
+  });
+  const tot = totH + totA + totI;
+
+  return {
+    total_kegiatan: full.kegiatan.length,
+    total_anggota: totalAnggota,
+    keseluruhan: { H: totH, A: totA, I: totI, B: totB,
+      persen_hadir: tot > 0 ? Math.round((totH / tot) * 1000) / 10 : null },
     per_kegiatan: perKegiatan,
     per_divisi: perDivisi,
     divisi: divisiOut
